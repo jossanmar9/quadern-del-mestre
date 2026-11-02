@@ -1,5 +1,5 @@
 /*
- * Quadern del Mestre — combat: iniciativa, torns, punts de golpe, estats amb durada, concentració
+ * Quadern del Mestre — combat: iniciativa, torns, punts de colp, estats amb durada, concentració
  * i dificultat de l'encontre.
  * Llicència GPL-3.0 o posterior.
  */
@@ -37,7 +37,7 @@ function renderCombat() {
     ${isDm ? `<div class="row cmb-add"><button class="btn sm" id="cmb-party">+ ${esc(t('El grup'))}</button><button class="btn sm" id="cmb-monster">+ ${esc(t('Monstre del SRD'))}</button><button class="btn sm" id="cmb-own">+ ${esc(t('Monstre propi'))}</button><button class="btn sm" id="cmb-other">+ ${esc(t('Un altre'))}</button>
       <button class="btn sm" id="cmb-sort">${esc(t('Ordenar per iniciativa'))}</button>${list.length ? `<button class="btn sm danger" id="cmb-clear">${esc(t('Buidar'))}</button>` : ''}
       ${enc ? `<span class="enc-diff" title="${esc(t('Pressupost per a {n}: baixa {a}, moderada {b}, alta {c} PX', {n: pl(enc.n, 'personatge', 'personatges'), a: enc.b[0], b: enc.b[1], c: enc.b[2]}))}">${esc(t('Dificultat'))}: <b>${esc(t(enc.lvl))}</b> · ${enc.xp} ${esc(t('PX'))}</span>` : ''}</div>` : ''}
-    ${list.length ? `<div class="cmb-scroll"><table class="cmb"><thead><tr><th>${esc(t('Inic.'))}</th><th>${esc(t('Nom'))}</th><th>${esc(t('CA'))}</th><th>${esc(t('Punts de golpe'))}</th>${isDm ? `<th>${esc(t('Dany / curació'))}</th>` : ''}<th>${esc(t('Estats'))}</th>${isDm ? '<th></th>' : ''}</tr></thead><tbody>
+    ${list.length ? `<div class="cmb-scroll"><table class="cmb"><thead><tr><th>${esc(t('Inic.'))}</th><th>${esc(t('Nom'))}</th><th>${esc(t('CA'))}</th><th>${esc(t('Punts de colp'))}</th>${isDm ? `<th>${esc(t('Dany / curació'))}</th>` : ''}<th>${esc(t('Estats'))}</th>${isDm ? '<th></th>' : ''}</tr></thead><tbody>
       ${list.map((r, i) => cmbRow(r, i, c, isDm)).join('')}</tbody></table></div>`
       : `<div class="empty"><b>${esc(t('No hi ha ningú al combat'))}</b>${esc(isDm ? t('Afig el grup i els monstres. Pots tirar la iniciativa dels monstres d\'un colp i després ordenar.') : t('Quan el màster comence un combat, ací veuràs l\'ordre d\'iniciativa.'))}</div>`}`;
 }
@@ -58,6 +58,19 @@ function cmbRow(r, i, c, isDm) {
     <td><div class="conds">${conds}${isDm || (r.ch && r.ch.ownerId === S.uid) ? `<select class="cond-add" data-cond-add aria-label="${esc(t('Afegir un estat'))}"><option value="">+ ${esc(t('estat'))}</option>${[...CONDS, ...EXTRA_CONDS].filter(([k]) => !(r.conds || []).includes(k)).map(([k, nm]) => `<option value="${k}">${esc(t(nm))}</option>`).join('')}</select>` : ''}</div></td>
     ${isDm ? `<td class="row-act"><button class="btn sm" data-rinit title="${esc(t('Tirar iniciativa'))}">d20</button><button class="btn sm" data-hide aria-pressed="${!!r.hidden}" title="${esc(t('Amagar als jugadors'))}">${r.hidden ? '◌' : '●'}</button><button class="btn sm danger" data-rm aria-label="${esc(t('Treure'))}">×</button></td>` : ''}</tr>`;
 }
+/** Iniciativa dels monstres: una tirada per criatura, o una per a cada grup de monstres iguals (segons les regles) */
+const npcGroup = r => r.monster || String(r.name || '').replace(/\s*\d+$/, '');
+function rollNpcInits(c, onlyMissing) {
+  const group = rules().init === 'group', done = {};
+  for (const r of c.list) {
+    if (r.kind === 'pc' || (onlyMissing && r.init != null)) continue;
+    if (!group) {r.init = rollInit(r, true); continue}
+    const k = npcGroup(r);
+    if (!(k in done)) {const m = c.list.filter(x => x.kind !== 'pc' && npcGroup(x) === k).length; done[k] = m > 1 ? rollInitGroup(r, m) : rollInit(r, true)}
+    r.init = done[k];
+  }
+}
+function rollInitGroup(r, n) {const res = doRoll(M('{n}: iniciativa del grup ({k})', {n: npcGroup(r), k: n}), '1d20' + sgn(initModOf(r)).replace('−', '-'), {adv: '', quiet: true, priv: dm()}); return res ? res.total : null}
 function initModOf(r) {const v = rowView(r); if (v.ch) return charCalc(v.ch).init; return +r.initMod || 0}
 function rollInit(r, quiet) {const res = doRoll(M('{n}: iniciativa', {n: rowView(r).name}), '1d20' + sgn(initModOf(r)).replace('−', '-'), {adv: '', quiet, priv: r.kind !== 'pc' && dm()}); return res ? res.total : null}
 function cmbUpdateRow(id, fn) {const c = clone(cmbDoc()); const r = (c.list || []).find(x => x.id === id); if (!r) return; fn(r, c); saveCmb(c)}
@@ -69,11 +82,11 @@ document.addEventListener('click', e => {
     return;
   }
   const x = e.target, row = x.closest('[data-row]'), rid = row?.dataset.row;
-  if (x.id === 'cmb-start') {const c = clone(cmbDoc()); for (const r of c.list) if (r.init == null && r.kind !== 'pc') r.init = rollInit(r, true); sortCmb(c); c.active = true; c.round = 1; c.turn = 0; saveCmb(c); return}
+  if (x.id === 'cmb-start') {const c = clone(cmbDoc()); rollNpcInits(c, true); sortCmb(c); c.active = true; c.round = 1; c.turn = 0; saveCmb(c); return}
   if (x.id === 'cmb-next' || x.id === 'cmb-prev') {const c = clone(cmbDoc()), n = c.list.length; if (!n) return; let tt = (c.turn || 0) + (x.id === 'cmb-next' ? 1 : -1); if (tt >= n) {tt = 0; c.round = (c.round || 1) + 1} if (tt < 0) {tt = n - 1; c.round = Math.max(1, (c.round || 1) - 1)} c.turn = tt;
     const ended = x.id === 'cmb-next' ? tickDurations(c, tt) : []; saveCmb(c); for (const f of ended) f(); return}
   if (x.id === 'cmb-end') {armed(x, () => {const c = clone(cmbDoc()); c.active = false; c.turn = 0; c.round = 1; c.list = c.list.filter(r => r.kind === 'pc'); for (const r of c.list) r.init = null; saveCmb(c); toast(t('Combat acabat. He tret els monstres de la llista.'))}, t('Segur? Prem de nou')); return}
-  if (x.id === 'cmb-rollnpc') {const c = clone(cmbDoc()); for (const r of c.list) if (r.kind !== 'pc') r.init = rollInit(r, true); sortCmb(c); saveCmb(c); return}
+  if (x.id === 'cmb-rollnpc') {const c = clone(cmbDoc()); rollNpcInits(c, false); sortCmb(c); saveCmb(c); return}
   if (x.id === 'cmb-sort') {const c = clone(cmbDoc()); sortCmb(c); saveCmb(c); return}
   if (x.id === 'cmb-clear') {armed(x, () => saveCmb({active: false, round: 1, turn: 0, list: []}), t('Segur? Prem de nou')); return}
   if (x.id === 'cmb-party') {const c = clone(cmbDoc()); let n = 0; for (const ch of chars().filter(q => !q.npc)) if (!c.list.some(r => r.charId === ch.id)) {c.list.push({id: newId(), kind: 'pc', charId: ch.id, name: ch.name, init: null, conds: []}); n++} saveCmb(c); toast(n ? t('Afegit: {x}', {x: pl(n, 'personatge', 'personatges')}) : t('Tot el grup ja és al combat.')); return}
@@ -144,7 +157,7 @@ function applyHpRow(rid, delta) {
 function allTokens() {const out = []; for (const m of col('maps')) for (const tk of col('maps/' + m.id + '/tokens')) out.push({map: m.id, tok: tk}); return out}
 function otherModal() {
   openModal(`<h2>${esc(t('Afegir al combat'))}</h2><label class="field"><span>${esc(t('Nom'))}</span><input class="in" id="o-n" autofocus></label>
-    <div class="grid2"><label class="field"><span>${esc(t('Punts de golpe'))}</span><input class="in" id="o-hp" type="number" value="10"></label><label class="field"><span>${esc(t('CA'))}</span><input class="in" id="o-ac" type="number" value="12"></label>
+    <div class="grid2"><label class="field"><span>${esc(t('Punts de colp'))}</span><input class="in" id="o-hp" type="number" value="10"></label><label class="field"><span>${esc(t('CA'))}</span><input class="in" id="o-ac" type="number" value="12"></label>
     <label class="field"><span>${esc(t('Bonificador d\'iniciativa'))}</span><input class="in" id="o-in" type="number" value="0"></label><label class="field"><span>${esc(t('Quants'))}</span><input class="in" id="o-c" type="number" min="1" max="20" value="1"></label></div>
     <label class="check"><input type="checkbox" id="o-map" ${mapId() ? 'checked' : ''}> ${esc(t('Posar també al mapa'))}</label><label class="check"><input type="checkbox" id="o-h"> ${esc(t('Amagat als jugadors'))}</label>
     <div class="foot"><button class="btn" id="o-x">${esc(t('Cancel·lar'))}</button><button class="btn pri" id="o-ok">${esc(t('Afegir'))}</button></div>`, (m, close) => {

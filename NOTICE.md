@@ -17,6 +17,14 @@ El text del SRD s'ha pres, en format de dades, del projecte [Compendio SRD](http
 d'Ismael Sevilla (codi amb llicència MIT, vegeu `src/srd/LICENSE-compendio-srd.txt`). S'hi han
 llevat les conversions a peus i s'ha reempaquetat en `src/srd/srd-es.json.gz`.
 
+**Traducció al valencià / Traducción al valenciano.** `src/srd/srd-va.json.gz` és una traducció **no oficial**
+al valencià del SRD 5.2.1, feta amb intel·ligència artificial a partir de la traducció oficial al castellà
+i amb el glossari de `eines/traduccio/glossari.md`. No l'ha revisada ni aprovada Wizards of the Coast. Es
+distribueix amb la mateixa llicència CC BY 4.0, amb l'atribució de dalt i indicant que s'ha modificat
+(traduït). Pot contindre errades: en cas de dubte, val la traducció oficial al castellà, que el programa
+també inclou. / Es una traducción no oficial al valenciano, hecha con IA a partir de la traducción oficial
+al castellano. En caso de duda, vale la traducción oficial al castellano.
+
 **Imatges / Imágenes.** El logo s'ha generat amb IA per a aquest projecte i es distribueix amb
 la mateixa llicència que el programa.
 

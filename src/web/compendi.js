@@ -1,7 +1,8 @@
 /*
  * Quadern del Mestre — compendi del SRD 5.2.1 (bestiari, conjurs, objectes, estats, equip, regles),
  * monstres propis i preparador d'encontres.
- * El text del SRD és la traducció oficial al castellà de Wizards of the Coast (CC-BY 4.0).
+ * El text del SRD és la traducció oficial al castellà de Wizards of the Coast (CC-BY 4.0), o la traducció
+ * no oficial al valencià que se'n deriva (feta amb IA), segons el que trie cada aparell.
  * Llicència GPL-3.0 o posterior.
  */
 const cp = {cat: lsGet('qm-cp-cat') || 'criatura', q: '', sel: null, f: {}, enc: []};
@@ -19,13 +20,16 @@ function renderCompendi() {
   const cats = CP_CATS.filter(c => !c[3] || dm()); if (!cats.some(c => c[0] === cp.cat)) cp.cat = 'conjuro';
   const cat = cats.find(c => c[0] === cp.cat);
   $('#main').innerHTML = `<div class="cp">
+    <div class="cp-lang" role="group" aria-label="${esc(t('Idioma del compendi'))}"><span class="small muted">${esc(t('Text del compendi'))}:</span>
+      <button class="chip${srdLang() === 'va' ? ' dm' : ''}" data-srdlang="va" aria-pressed="${srdLang() === 'va'}">${esc(t('Valencià'))}</button><button class="chip${srdLang() === 'es' ? ' dm' : ''}" data-srdlang="es" aria-pressed="${srdLang() === 'es'}">${esc(t('Castellà (oficial)'))}</button>
+      ${SRD.real === 'va' ? `<span class="small cp-ia">${esc(t('Traducció no oficial feta amb IA. Si dubtes d\'una regla, consulta la castellana oficial.'))}</span>` : srdLang() === 'va' ? `<span class="small cp-ia">${esc(t('Encara no hi ha traducció al valencià: es mostra la castellana.'))}</span>` : ''}</div>
     <nav class="subtabs cp-cats" role="tablist">${cats.map(([id, lb]) => `<button role="tab" data-cpcat="${id}" aria-selected="${id === cp.cat}">${esc(t(lb))}</button>`).join('')}</nav>
     <div class="cp-body"><div class="cp-list-wrap">
       <div class="cp-search"><input class="in" id="cp-q" type="search" placeholder="${esc(t('Cerca…'))}" value="${esc(cp.q)}" aria-label="${esc(t('Cerca'))}">${cpFilters(cat[0])}</div>
       <ol class="cp-list" id="cp-list"></ol></div>
       <div class="cp-detail" id="cp-detail"></div>
       ${dm() && cp.cat === 'criatura' ? `<aside class="cp-enc" id="cp-enc"></aside>` : ''}</div>
-    <p class="srd-attr small muted">${esc(t('El text del compendi és la traducció oficial al castellà del SRD 5.2.1.'))} ${esc(SRD.attr || '')}</p></div>`;
+    <p class="srd-attr small muted">${SRD.real === 'va' ? esc(t('Text del compendi: traducció no oficial al valencià, feta amb IA a partir de la traducció oficial al castellà del SRD 5.2.1.')) : esc(t('El text del compendi és la traducció oficial al castellà del SRD 5.2.1.'))} ${esc(SRD.attr || '')}</p></div>`;
   drawCpList(); drawCpDetail(); drawEnc();
 }
 function cpFilters(cat) {
@@ -48,7 +52,7 @@ function cpEntries(cat) {
   }
   if (cat === 'conjuro') {if (f.lvl !== undefined && f.lvl !== '') list = list.filter(e => String(e.c?.nivel) === f.lvl); if (f.cls) {const C = f.cls.charAt(0).toUpperCase() + f.cls.slice(1); list = list.filter(e => (e.c?.clases || []).includes(C))}}
   if (cat === 'objeto' && f.rar) list = list.filter(e => (e.c?.rarezas || []).includes(f.rar));
-  if (def[2].length > 1) list = [...list].sort((a, b) => a.e.nombre.localeCompare(b.e.nombre, 'es'));
+  if (def[2].length > 1) list = [...list].sort((a, b) => a.e.nombre.localeCompare(b.e.nombre, SRD.real === 'va' ? 'ca' : 'es'));
   return list;
 }
 function entrySub(e) {
@@ -137,6 +141,7 @@ function showOwnMonster(id) {const m = getDoc('dmmonsters/' + id); if (!m) retur
 
 document.addEventListener('click', e => {
   if (st.tab !== 'compendi') return; const x = e.target;
+  const sl = x.closest('[data-srdlang]'); if (sl) {setSrdLang(sl.dataset.srdlang); renderCompendi(); return}
   const cc = x.closest('[data-cpcat]'); if (cc) {cp.cat = cc.dataset.cpcat; lsSet('qm-cp-cat', cp.cat); cp.sel = null; renderCompendi(); return}
   const it = x.closest('[data-cpe]'); if (it) {cp.sel = it.dataset.cpe.split('/').slice(1).join('/'); $$('[data-cpe]').forEach(b => b.setAttribute('aria-current', b === it)); drawCpDetail(); if (window.matchMedia('(max-width:900px)').matches) $('#cp-detail').scrollIntoView({behavior: 'smooth'}); return}
   const sb = x.closest('[data-sb]'); if (sb) {const en = srdGet('criatura', sb.dataset.id), n = clamp(+$('#sb-n')?.value || 1, 1, 20);

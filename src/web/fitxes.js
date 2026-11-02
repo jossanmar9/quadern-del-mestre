@@ -79,16 +79,16 @@ function sheetHtml(c) {
     <div class="vitals">
       <div class="vital"><span>${esc(t('Classe d\'armadura'))}</span>${ed ? `<input data-f="ac" type="number" value="${esc(c.ac)}">` : `<b>${esc(c.ac)}</b>`}</div>
       <button class="vital" data-roll="1d20${sgn(k.init).replace('−', '-')}" data-roll-label="${esc(t('{n}: iniciativa', {n: c.name}))}"><span>${esc(t('Iniciativa'))}</span><b>${sgn(k.init)}</b></button>
-      <div class="vital"><span>${esc(t('Velocitat (m)'))}</span>${ed ? `<input data-f="speed" type="number" step="1.5" value="${esc(c.speed)}">` : `<b>${esc(c.speed)}</b>`}</div>
+      <div class="vital"><span>${esc(t('Velocitat ({u})', {u: unitLbl()}))}</span>${ed ? `<input data-f="speed" type="number" step="${unitStep()}" value="${esc(toUnit(+c.speed || 0))}">` : `<b>${esc(toUnit(+c.speed || 0))}</b>`}</div>
       <div class="vital"><span>${esc(t('Bonificador de competència'))}</span><b>${sgn(k.pb)}</b></div>
       <div class="vital"><span>${esc(t('Percepció passiva'))}</span><b>${k.passive}</b></div>
     </div>
     <div class="hp">
-      <div class="hp-nums"><input data-f="hp" type="number" value="${esc(c.hp)}" ${dis} aria-label="${esc(t('Punts de golpe'))}"><small>/</small><input data-f="maxHp" type="number" value="${esc(c.maxHp)}" ${dis} aria-label="${esc(t('Punts de golpe màxims'))}"><small>${esc(t('PG'))}</small>
-        <input data-f="tmp" type="number" value="${esc(c.tmp || 0)}" ${dis} aria-label="${esc(t('Punts de golpe temporals'))}" style="width:56px"><small>${esc(t('temp.'))}</small></div>
+      <div class="hp-nums"><input data-f="hp" type="number" value="${esc(c.hp)}" ${dis} aria-label="${esc(t('Punts de colp'))}"><small>/</small><input data-f="maxHp" type="number" value="${esc(c.maxHp)}" ${dis} aria-label="${esc(t('Punts de colp màxims'))}"><small>${esc(t('PG'))}</small>
+        <input data-f="tmp" type="number" value="${esc(c.tmp || 0)}" ${dis} aria-label="${esc(t('Punts de colp temporals'))}" style="width:56px"><small>${esc(t('temp.'))}</small></div>
       <div class="hpbar"><i class="${hpCls(hpPct(c.hp, c.maxHp))}" style="width:${hpPct(c.hp, c.maxHp) * 100}%"></i></div>
       ${ed ? `<div class="hp-quick row"><input class="in mono" id="hp-amt" type="number" min="0" placeholder="0" aria-label="${esc(t('Quantitat'))}" style="width:80px"><button class="btn sm danger" data-hp="-1">${esc(t('Dany'))}</button><button class="btn sm" data-hp="1">${esc(t('Curació'))}</button><button class="btn sm" data-hp="tmp">${esc(t('Temporals'))}</button>
-        <span class="muted small" style="margin-left:auto">${esc(t('Daus de golpe'))}: ${k.lv - (c.hdUsed || 0)}/${k.lv} d${k.hd}</span><button class="btn sm" id="rest-short">${esc(t('Descans curt'))}</button><button class="btn sm" id="rest-long">${esc(t('Descans llarg'))}</button></div>` : ''}
+        <span class="muted small" style="margin-left:auto">${esc(t('Daus de colp'))}: ${k.lv - (c.hdUsed || 0)}/${k.lv} d${k.hd}</span><button class="btn sm" id="rest-short">${esc(t('Descans curt'))}</button><button class="btn sm" id="rest-long">${esc(t('Descans llarg'))}</button></div>` : ''}
     </div>
     <nav class="subtabs" role="tablist">${subs.map(([id, lb]) => `<button role="tab" data-sub="${id}" aria-selected="${fx.sub === id}">${esc(t(lb))}</button>`).join('')}</nav>
     <div class="subpane">${({fitxa: sheetMain, combat: sheetCombat, conjurs: sheetSpells, inventari: sheetInv, notes: sheetNotes}[fx.sub] || sheetMain)(c, k, ed, dis)}</div>
@@ -103,17 +103,18 @@ function sheetMain(c, k, ed, dis) {
       <button class="modb" data-roll="1d20${sgn(k.mods[id]).replace('−', '-')}" data-roll-label="${esc(t('{n}: prova de {x}', {n: c.name, x: t(nm)}))}" title="${esc(t('Tirar una prova de {x}', {x: t(nm)}))}">${sgn(k.mods[id])}</button>
       <input type="number" data-f="ab.${id}" value="${esc(c.ab?.[id] ?? 10)}" min="1" max="30" ${dis} aria-label="${esc(t(nm))}">
       <span class="save"><input type="checkbox" data-fb="saves.${id}" ${c.saves?.[id] ? 'checked' : ''} ${dis} aria-label="${esc(t('Competència en salvacions de {x}', {x: t(nm)}))}"><button data-roll="1d20${sgn(k.save(id)).replace('−', '-')}" data-roll-label="${esc(t('{n}: salvació de {x}', {n: c.name, x: t(nm)}))}">${esc(t('Salv.'))} ${sgn(k.save(id))}</button></span></div>`).join('')}</div>
-      <div class="row" style="margin-top:12px"><label class="check"><input type="checkbox" data-fb="insp" ${c.insp ? 'checked' : ''} ${dis}> ${esc(t('Inspiració heroica'))}</label></div></div>
+      ${rules().insp ? `<div class="row" style="margin-top:12px"><label class="check"><input type="checkbox" data-fb="insp" ${c.insp ? 'checked' : ''} ${dis}> ${esc(t('Inspiració heroica'))}</label></div>` : ''}</div>
     <div><h3>${esc(t('Habilitats'))}</h3><div class="skills">${SKILLS.map(([id, nm, ab]) => {const lvl = c.skills?.[id] || 0;
       return `<div class="sk"><button class="prof p${lvl}" data-prof="${id}" ${dis} title="${esc(t(lvl === 2 ? 'Expert' : lvl ? 'Competent' : 'Sense competència'))}" aria-label="${esc(t('Competència en {x}', {x: t(nm)}))}">${lvl === 2 ? '◆' : lvl ? '●' : '○'}</button><b>${sgn(k.skill(id))}</b>
         <button data-roll="1d20${sgn(k.skill(id)).replace('−', '-')}" data-roll-label="${esc(t('{n}: {x}', {n: c.name, x: t(nm)}))}"><span>${esc(t(nm))}</span><small>${esc(abShort(ab))}</small></button></div>`}).join('')}</div></div></div>`;
 }
+const CRIT_TIP = {double: L('Dany de crític (dobla els daus)'), max: L('Dany de crític (el màxim dels daus més una tirada)')};
 function sheetCombat(c, k, ed, dis) {
   const atks = c.attacks || [];
   return `<div class="cols"><div><h3>${esc(t('Atacs'))}</h3>
       <div class="atk-list">${atks.map(a => `<div class="atk" data-atk="${a.id}">
         ${ed ? `<input class="in" data-a="name" value="${esc(a.name)}" placeholder="${esc(t('Arma o atac'))}"><input class="in mono" data-a="bonus" value="${esc(a.bonus)}" placeholder="+5" style="width:64px"><input class="in mono" data-a="dmg" value="${esc(a.dmg)}" placeholder="1d8+3" style="width:110px"><input class="in" data-a="type" value="${esc(a.type || '')}" placeholder="${esc(t('tipus'))}" style="width:110px">` : `<b>${esc(a.name)}</b><span class="mono">${esc(a.bonus)}</span><span class="mono">${esc(a.dmg)}</span><span class="muted">${esc(a.type || '')}</span>`}
-        <button class="btn sm" data-atk-roll="hit">${esc(t('Atacar'))}</button><button class="btn sm" data-atk-roll="dmg">${esc(t('Dany'))}</button><button class="btn sm" data-atk-roll="crit" title="${esc(t('Dany de crític (dobla els daus)'))}">${esc(t('Crític'))}</button>
+        <button class="btn sm" data-atk-roll="hit">${esc(t('Atacar'))}</button><button class="btn sm" data-atk-roll="dmg">${esc(t('Dany'))}</button><button class="btn sm" data-atk-roll="crit" title="${esc(t(CRIT_TIP[rules().crit] || CRIT_TIP.double))}">${esc(t('Crític'))}</button>
         ${ed ? `<button class="btn sm danger" data-atk-del aria-label="${esc(t('Esborrar'))}">×</button>` : ''}</div>`).join('') || `<p class="muted small">${esc(t('Encara no hi ha atacs.'))}</p>`}</div>
       ${ed ? `<div class="row" style="margin-top:8px"><button class="btn sm" id="atk-add">+ ${esc(t('Atac'))}</button><button class="btn sm" id="atk-srd">+ ${esc(t('Arma del SRD'))}</button></div>` : ''}
     </div>
@@ -122,7 +123,7 @@ function sheetCombat(c, k, ed, dis) {
       <h3 style="margin-top:18px">${esc(t('Salvacions contra la mort'))}</h3>
       <div class="death row"><span class="small">${esc(t('Èxits'))}</span>${[1, 2, 3].map(n => `<button class="pip-b ok" data-death="0:${n}" aria-pressed="${(c.death?.[0] || 0) >= n}" ${dis}></button>`).join('')}
         <span class="small" style="margin-left:14px">${esc(t('Fracassos'))}</span>${[1, 2, 3].map(n => `<button class="pip-b ko" data-death="1:${n}" aria-pressed="${(c.death?.[1] || 0) >= n}" ${dis}></button>`).join('')}
-        <button class="btn sm" data-roll="1d20" data-roll-label="${esc(t('{n}: salvació contra la mort', {n: c.name}))}" style="margin-left:auto">${esc(t('Tirar'))}</button></div>
+        <button class="btn sm" data-roll="1d20" data-roll-kind="death" data-roll-label="${esc(t('{n}: salvació contra la mort', {n: c.name}))}" style="margin-left:auto" title="${esc(rules().deathSaves === 'dm' ? t('Tirada secreta: només la veieu tu i el màster') : '')}">${esc(t('Tirar'))}</button></div>
       <h3 style="margin-top:18px">${esc(t('Bonificador extra d\'iniciativa'))}</h3>${`<input class="in" type="number" data-f="initBonus" value="${esc(c.initBonus || 0)}" ${dis} style="width:90px">`}
     </div></div>`;
 }
@@ -157,7 +158,16 @@ function sheetInv(c, k, ed, dis) {
     <h3 style="margin-top:16px">${esc(t('Equip'))}</h3>
     <div class="inv">${inv.map(i => `<div class="inv-row" data-inv="${i.id}">${ed ? `<input type="checkbox" data-i="eq" ${i.eq ? 'checked' : ''} title="${esc(t('Equipat'))}" aria-label="${esc(t('Equipat'))}"><input class="in" data-i="name" value="${esc(i.name)}"><input class="in mono" type="number" min="0" data-i="qty" value="${esc(i.qty ?? 1)}" aria-label="${esc(t('Quantitat'))}"><input class="in mono" type="number" min="0" step="0.1" data-i="wt" value="${esc(i.wt ?? '')}" placeholder="kg" aria-label="${esc(t('Pes (kg)'))}"><input class="in" data-i="notes" value="${esc(i.notes || '')}" placeholder="${esc(t('Notes'))}"><button class="btn sm danger" data-inv-del aria-label="${esc(t('Esborrar'))}">×</button>`
       : `<span>${i.eq ? '◆' : ''}</span><b>${esc(i.name)}</b><span class="mono">×${esc(i.qty ?? 1)}</span><span class="mono">${i.wt ? esc(i.wt) + ' kg' : ''}</span><span class="muted">${esc(i.notes || '')}</span>`}</div>`).join('') || `<p class="muted small">${esc(t('La motxilla està buida.'))}</p>`}</div>
-    <div class="row" style="margin-top:8px">${ed ? `<button class="btn sm" id="inv-add">+ ${esc(t('Objecte'))}</button><button class="btn sm" id="inv-srd">+ ${esc(t('Del SRD'))}</button>` : ''}<span class="muted small" style="margin-left:auto">${esc(t('Pes total: {n} kg', {n: Math.round(wt * 10) / 10}))}</span></div>`;
+    <div class="row" style="margin-top:8px">${ed ? `<button class="btn sm" id="inv-add">+ ${esc(t('Objecte'))}</button><button class="btn sm" id="inv-srd">+ ${esc(t('Del SRD'))}</button>` : ''}<span class="muted small" style="margin-left:auto">${esc(t('Pes total: {n} kg', {n: Math.round(wt * 10) / 10}))}</span></div>
+    ${rules().weight ? carryHtml(c, wt) : ''}`;
+}
+/** Capacitat de càrrega (SRD): Força × 7,5 kg; els goliats compten com una mida més gran (× 15 kg) */
+function carryHtml(c, wt) {
+  const str = +c.ab?.str || 10, f = c.species === 'goliath' ? 15 : 7.5, cap = str * f, drag = cap * 2, w = Math.round(wt * 10) / 10;
+  const cls = w > drag ? 'over' : w > cap ? 'high' : '';
+  return `<div class="carry ${cls}"><div class="carry-bar"><i style="width:${Math.min(100, w / cap * 100)}%"></i></div>
+    <p class="small" style="margin:4px 0 0">${esc(t('Capacitat de càrrega: {c} kg (arrossegar, alçar o empényer: {d} kg).', {c: cap, d: drag}))}
+    ${w > drag ? `<b>${esc(t('No pot moure tant de pes.'))}</b>` : w > cap ? `<b>${esc(t('Porta més pes del que pot carregar: si l\'arrossega o l\'empeny, la seua velocitat no passa de {v}.', {v: distTxt(1.5)}))}</b>` : ''}</p></div>`;
 }
 function sheetNotes(c, k, ed, dis) {
   const ta = (f, lb, ph) => `<label class="field"><span>${esc(t(lb))}</span><textarea class="in" data-f="${f}" ${dis} placeholder="${esc(t(ph))}">${esc(c[f] || '')}</textarea></label>`;
@@ -213,7 +223,7 @@ document.addEventListener('change', e => {
 });
 const sheetInput = debounce((x, id) => {
   const c = getDoc('characters/' + id); if (!c) return;
-  if (x.dataset.f) {const v = x.type === 'number' ? (x.value === '' ? 0 : +x.value) : x.value; charWrite(id, x.dataset.f, v); return}
+  if (x.dataset.f) {let v = x.type === 'number' ? (x.value === '' ? 0 : +x.value) : x.value; if (x.dataset.f === 'speed') v = fromUnit(v); charWrite(id, x.dataset.f, v); return}
   if (x.dataset.a) {const aid = x.closest('[data-atk]').dataset.atk; write('characters/' + id, {attacks: (c.attacks || []).map(a => a.id === aid ? {...a, [x.dataset.a]: x.value} : a)}, 'update'); return}
   if (x.dataset.i) {const iid = x.closest('[data-inv]').dataset.inv; const v = x.type === 'number' ? +x.value : x.value; write('characters/' + id, {inv: (c.inv || []).map(i => i.id === iid ? {...i, [x.dataset.i]: v} : i)}, 'update')}
 }, 350);
@@ -246,8 +256,8 @@ function longRest(c) {
 }
 function shortRest(c) {
   const k = charCalc(c), left = k.lv - (c.hdUsed || 0);
-  if (left <= 0) {toast(t('No queden daus de golpe.')); return}
-  const r = doRoll(M('{n}: dau de golpe', {n: c.name}), `1d${k.hd}${sgn(k.mods.con).replace('−', '-')}`, {adv: '', quiet: true});
+  if (left <= 0) {toast(t('No queden daus de colp.')); return}
+  const r = doRoll(M('{n}: dau de colp', {n: c.name}), `1d${k.hd}${sgn(k.mods.con).replace('−', '-')}`, {adv: '', quiet: true});
   if (!r) return;
   write('characters/' + c.id, {hp: Math.min(c.maxHp, (c.hp || 0) + Math.max(1, r.total)), hdUsed: (c.hdUsed || 0) + 1, pact: {...(c.pact || {}), used: 0}}, 'update');
 }
@@ -265,8 +275,8 @@ const xpReady = c => {const lv = clamp(+c.level || 1, 1, 20); return lv < 20 && 
 /** Els trets de classe d'un nivell, de la taula de la classe al compendi (en castellà, com tot el SRD) */
 function classFeatures(cls, lv) {
   const e = srdGet('clase', cls); if (!e) return null;
-  const tb = (e.e.bloques || []).find(b => b.t === 'tabla' && /^Rasgos de/i.test(b.titulo || '')); if (!tb) return null;
-  const head = tb.filas[0] || [], col = head.findIndex(h => /Rasgos de clase/i.test(h)); const row = tb.filas.find(r => r[0] === String(lv));
+  const tb = (e.e.bloques || []).find(b => b.t === 'tabla' && /^(Rasgos|Trets) de/i.test(b.titulo || '')); if (!tb) return null;
+  const head = tb.filas[0] || [], col = head.findIndex(h => /Rasgos de clase|Trets de classe/i.test(h)); const row = tb.filas.find(r => r[0] === String(lv));
   return row && col >= 0 ? row[col] : null;
 }
 async function levelUpModal(c) {
@@ -276,12 +286,12 @@ async function levelUpModal(c) {
   const oldS = slotsFor(c, k.lv), newS = slotsFor(c, nl), feats = classFeatures(c.cls, nl), need = XP_LEVELS[nl];
   openModal(`<h2>${esc(t('{n} puja a nivell {l}', {n: c.name || t('Sense nom'), l: nl}))}</h2>
     ${(+c.xp || 0) < need ? `<p class="small muted" style="margin:0">${esc(t('Encara no té els PX del nivell {l} ({x} de {y}). Si jugueu per fites, pots pujar-lo igualment.', {l: nl, x: +c.xp || 0, y: need}))}</p>` : ''}
-    <h3>${esc(t('Punts de golpe'))}</h3>
-    <label class="check"><input type="radio" name="lu-hp" value="avg" checked> ${esc(t('Valor fix: +{n} PG ({a} del dau i {c} de Constitució)', {n: Math.max(1, avg + con), a: avg, c: sgn(con)}))}</label>
-    <label class="check"><input type="radio" name="lu-hp" value="roll"> ${esc(t('Tirar 1d{d}{m}', {d: k.hd, m: con ? sgn(con) : ''}))}</label>
+    <h3>${esc(t('Punts de colp'))}</h3>
+    ${rules().hpLevel !== 'roll' ? `<label class="check"><input type="radio" name="lu-hp" value="avg" checked> ${esc(t('Valor fix: +{n} PG ({a} del dau i {c} de Constitució)', {n: Math.max(1, avg + con), a: avg, c: sgn(con)}))}</label>` : ''}
+    ${rules().hpLevel !== 'fixed' ? `<label class="check"><input type="radio" name="lu-hp" value="roll" ${rules().hpLevel === 'roll' ? 'checked' : ''}> ${esc(t('Tirar 1d{d}{m}', {d: k.hd, m: con ? sgn(con) : ''}))}</label>` : ''}
     <ul class="lu-list">
-      <li>${esc(t('Punts de golpe màxims'))}: <b>${esc(c.maxHp || 0)}</b> → <b id="lu-max">${(+c.maxHp || 0) + Math.max(1, avg + con)}</b></li>
-      <li>${esc(t('Daus de golpe'))}: ${k.lv}d${k.hd} → <b>${nl}d${k.hd}</b></li>
+      <li>${esc(t('Punts de colp màxims'))}: <b>${esc(c.maxHp || 0)}</b> → <b id="lu-max">${rules().hpLevel === 'roll' ? esc(t('{n} + la tirada', {n: c.maxHp || 0})) : (+c.maxHp || 0) + Math.max(1, avg + con)}</b></li>
+      <li>${esc(t('Daus de colp'))}: ${k.lv}d${k.hd} → <b>${nl}d${k.hd}</b></li>
       ${pbNew !== k.pb ? `<li>${esc(t('Bonificador de competència'))}: ${sgn(k.pb)} → <b>${sgn(pbNew)}</b></li>` : ''}
       ${newS ? `<li>${esc(t('Espais de conjur'))}: ${esc(slotsText(oldS))} → <b>${esc(slotsText(newS))}</b></li>` : ''}
     </ul>
@@ -294,7 +304,7 @@ async function levelUpModal(c) {
     if ($('#lu-class', m)) $('#lu-class', m).onclick = () => {close(); showEntry('clase', c.cls)};
     $('#lu-ok', m).onclick = () => {
       let gain = Math.max(1, avg + con);
-      if ($('[name=lu-hp]:checked', m).value === 'roll') {const r = doRoll(M('{n}: punts de golpe del nivell {l}', {n: c.name, l: nl}), `1d${k.hd}${con ? sgn(con).replace('−', '-') : ''}`, {adv: '', quiet: true}); if (!r) return; gain = Math.max(1, r.total)}
+      if ($('[name=lu-hp]:checked', m).value === 'roll') {const r = doRoll(M('{n}: punts de colp del nivell {l}', {n: c.name, l: nl}), `1d${k.hd}${con ? sgn(con).replace('−', '-') : ''}`, {adv: '', quiet: true}); if (!r) return; gain = Math.max(1, r.total)}
       const cur = getDoc('characters/' + c.id) || c;
       const upd = {level: nl, maxHp: (+cur.maxHp || 0) + gain, hp: (+cur.hp || 0) + gain};
       if (newS && $('#lu-slots', m)?.checked) Object.assign(upd, slotsFor(cur, nl));
@@ -307,13 +317,13 @@ function rollAttack(c, a, kind) {
   const nm = a.name || t('Atac');
   if (kind === 'hit') {const b = String(a.bonus || '+0').trim().replace('−', '-'); doRoll(M('{n}: atac amb {x}', {n: c.name, x: nm}), '1d20' + (/^[-+]/.test(b) ? b : '+' + b)); return}
   let d = String(a.dmg || '').replace(/\s+/g, '').replace('−', '-');
-  if (kind === 'crit') d = d.replace(/(\d*)d(\d+)/g, (m, n, f) => `${(+n || 1) * 2}d${f}`);
+  if (kind === 'crit') d = rules().crit === 'max' ? d.replace(/(\d*)d(\d+)/g, (m, n, f) => `${(+n || 1) * +f}+${n || 1}d${f}`) : d.replace(/(\d*)d(\d+)/g, (m, n, f) => `${(+n || 1) * 2}d${f}`);
   doRoll(M(kind === 'crit' ? '{n}: dany de crític amb {x}' : '{n}: dany amb {x}', {n: c.name, x: nm}), d || '1d4');
 }
 function addWeapon(c, en) {
   const k = charCalc(c), cc = en.c || {}, props = cc.propiedades || [], ranged = /Ranged/.test(cc.categoria || '');
   const ab = props.includes('Finesse') ? (k.mods.str >= k.mods.dex ? 'str' : 'dex') : ranged ? 'dex' : 'str';
-  const dmgRow = (en.e.bloques?.[0]?.filas || []).find(r => /Daño/i.test(r[0]));
+  const dmgRow = (en.e.bloques?.[0]?.filas || []).find(r => /Daño|Dany/i.test(r[0]));
   const type = dmgRow ? dmgRow[1].replace(/^[\dd+\s]+/, '') : '';
   const m = k.mods[ab];
   write('characters/' + c.id, {attacks: [...(c.attacks || []), {id: newId(), name: en.e.nombre, bonus: sgn(k.pb + m).replace('−', '-'), dmg: (cc.dano || '1d4') + (m ? sgn(m).replace('−', '-') : ''), type}]}, 'update');

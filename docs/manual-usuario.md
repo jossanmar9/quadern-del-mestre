@@ -72,6 +72,29 @@ Hay dos **partidas de ejemplo**, la manera más rápida de probarlo todo. Cada u
 
 ![La pestaña Partidas.](imatges/es/03-partides.jpg)
 
+## Reglas de la partida
+
+Cada partida tiene sus reglas. Al crear una, elige una configuración rápida, y después ajústalas cuando quieras con el botón **Reglas** de la partida abierta:
+
+- **Estándar 2024:** las reglas básicas del SRD, tal como vienen.
+- **Para principiantes:** PG fijos al subir de nivel, los monstruos iguales tiran la iniciativa juntos, los jugadores ven los PG de los monstruos con números y los mapas nuevos llevan niebla automática.
+- **Exigente:** diagonales variantes, PG tirados, los jugadores no saben la vida de los monstruos, las salvaciones contra la muerte son secretas, cada uno ve solo sus tiradas (y las del máster), se controla la carga y hay niebla automática.
+
+| Opción | Qué cambia |
+|---|---|
+| **Unidades** | Metros (1,5 m por casilla) o pies (5 pies por casilla) en la regla, las áreas, la velocidad y la visión. |
+| **Diagonales** | Cada diagonal cuenta una casilla, o alternan 1 y 2 casillas. |
+| **Niebla de los mapas nuevos** | Manual o automática, y la distancia de visión. |
+| **PG al subir de nivel** | Que elija el jugador, siempre el valor fijo o siempre tirando el dado. |
+| **Inspiración heroica** | Se puede quitar de las fichas. |
+| **Carga** | Muestra el peso que puede llevar cada personaje (Fuerza × 7,5 kg) y avisa si lleva demasiado. |
+| **Iniciativa de los monstruos** | Una tirada por criatura, o una para cada grupo de monstruos iguales. |
+| **Golpes críticos** | Doblar los dados de daño, o el máximo de los dados más una tirada. |
+| **Concentración** | Tirar sola la salvación al recibir daño, o no. |
+| **Vida de los monstruos** | Los jugadores la ven con palabras (herido, malherido…), con números o nada. |
+| **Salvaciones contra la muerte** | Públicas, o solo para el jugador y el máster. |
+| **Tiradas de los otros jugadores** | Las ve todo el mundo, o cada uno ve las suyas y las del máster. |
+
 ## El mapa
 
 ![El mapa tal como lo ve el máster: la niebla es transparente y las puertas secretas llevan una S.](imatges/es/04-mapa-master.jpg)
@@ -175,7 +198,9 @@ La dificultad del encuentro (baja, moderada, alta) se calcula con los PX de los 
 
 ![El bestiario y el preparador de encuentros.](imatges/es/16-compendi.jpg)
 
-El compendio lleva el SRD 5.2.1 entero con la traducción oficial al castellano de Wizards of the Coast: 330 criaturas, 339 conjuros, objetos mágicos, estados, equipo, clases, especies, dotes y reglas. Tiene búsqueda y filtros por tipo, VD, nivel, clase y rareza.
+El compendio lleva el SRD 5.2.1 entero: 330 criaturas, 339 conjuros, objetos mágicos, estados, equipo, clases, especies, dotes y reglas. Tiene búsqueda y filtros por tipo, VD, nivel, clase y rareza.
+
+Se puede leer **en castellano** o **en valenciano** con los botones de arriba. La versión en castellano es la traducción oficial de Wizards of the Coast; la valenciana es una traducción **no oficial**, hecha con IA a partir de la castellana. Cada dispositivo recuerda lo que ha elegido.
 
 - **Al combate**, **Al combate y al mapa** o **Al encuentro** desde cada monstruo.
 - El **preparador de encuentros** suma los PX y muestra la dificultad para tu grupo.
@@ -212,7 +237,7 @@ Los jugadores ven el compendio sin el bestiario.
 
 **En el móvil.** Todo se adapta a una columna. En el mapa, mueve con un dedo y haz zoom con dos.
 
-**Idioma y tema.** **VAL** y **CAS** cambian el idioma, y el botón de la luna (◐ ☀ ☾) el tema: automático, claro u oscuro. Cada dispositivo recuerda los suyos. El texto del compendio es siempre la traducción oficial al castellano.
+**Idioma y tema.** **VAL** y **CAS** cambian el idioma, y el botón de la luna (◐ ☀ ☾) el tema: automático, claro u oscuro. Cada dispositivo recuerda los suyos. El idioma del compendio se elige en el mismo compendio.
 
 ![El mapa en un móvil.](imatges/es/20-mobil.jpg)
 

@@ -289,6 +289,66 @@ class Proves(unittest.TestCase):
         self.assertEqual(s.req("/api/campaigns", {"action": "restore", "id": cid, "backup": "../x"}, self.dm)[0], 404)
         self.assertEqual(s.req("/api/campaigns", {"action": "backups", "id": cid}, self.pj)[0], 403)
 
+    # ---------------------------------------------------------------- regles de la partida
+    def test_regles(self):
+        s = self.s
+        try:
+            s.write(self.pj, "characters/mort", {"name": "Moribund", "ownerId": self.pj_uid, "death": [1, 2]})
+            s.write(self.altre, "characters/altre", {"name": "Company", "ownerId": self.altre_uid, "death": [0, 1]})
+            s.write(self.dm, "combat/main", {"active": True, "round": 1, "turn": 0, "list": [
+                {"id": "z", "name": "Zombi", "kind": "npc", "hp": 3, "maxHp": 15, "ac": 8}]})
+            # PG dels monstres amb números, i les regles s'ignoren si no són vàlides
+            s.write(self.dm, "campaign/main", {"rules": {"monsterHp": "numbers", "deathSaves": "dm", "rolls": "own", "inventat": 1, "crit": "res"}}, "update")
+            rules = s.snap(self.dm)["campaign/main"]["rules"]
+            self.assertEqual(rules, {"monsterHp": "numbers", "deathSaves": "dm", "rolls": "own"})
+            z = s.snap(self.pj)["combat/main"]["list"][0]
+            self.assertEqual((z["hp"], z["maxHp"]), (3, 15))
+            self.assertNotIn("ac", z)
+            # salvacions contra la mort: cadascú veu les seues
+            docs = s.snap(self.pj)
+            self.assertEqual(docs["characters/mort"]["death"], [1, 2])
+            self.assertNotIn("death", docs["characters/altre"])
+            self.assertIn("death", s.snap(self.dm)["characters/altre"])
+            # una salvació contra la mort secreta: la veu qui la tira i el màster
+            s.req("/api/roll", {"roll": {"label": "Mort secreta", "total": 7, "priv": True, "kind": "death"}}, self.pj)
+            s.req("/api/roll", {"roll": {"label": "Secreta inventada", "total": 7, "priv": True}}, self.pj)
+            s.req("/api/roll", {"roll": {"label": "De l'altre", "total": 9}}, self.altre)
+            s.req("/api/roll", {"roll": {"label": "Del màster", "total": 11}}, self.dm)
+            mine = [r["label"] for r in s.snap(self.pj)["rolls/main"]["list"]]
+            other = [r["label"] for r in s.snap(self.altre)["rolls/main"]["list"]]
+            master = [r["label"] for r in s.snap(self.dm)["rolls/main"]["list"]]
+            self.assertIn("Mort secreta", mine)
+            self.assertIn("Mort secreta", master)
+            self.assertNotIn("Mort secreta", other)
+            inv = [r for r in s.snap(self.dm)["rolls/main"]["list"] if r["label"] == "Secreta inventada"][0]
+            self.assertFalse(inv["priv"], "un jugador no pot fer tirades secretes qualssevol")
+            self.assertNotIn("De l'altre", mine, "amb «cadascú veu les seues» no es veuen les dels altres")
+            self.assertIn("Del màster", mine)
+            # sense res: ni paraules ni números
+            s.write(self.dm, "campaign/main", {"rules": {"monsterHp": "none"}}, "update")
+            z = s.snap(self.pj)["combat/main"]["list"][0]
+            self.assertNotIn("hp", z)
+            self.assertEqual(z["state"], "")
+            # en crear una partida es poden triar les regles
+            st, d = s.req("/api/campaigns", {"action": "create", "name": "Amb regles", "rules": {"units": "ft", "diag": "alt"}}, self.dm)
+            self.assertEqual(s.snap(self.dm)["campaign/main"]["rules"], {"units": "ft", "diag": "alt"})
+        finally:
+            prova = [c["id"] for c in s.get("/api/campaigns", self.dm)[1]["list"] if c["name"] == "Prova"][0]
+            s.req("/api/campaigns", {"action": "switch", "id": prova}, self.dm)
+            s.write(self.dm, "campaign/main", {"rules": {}}, "update")
+
+    def test_compendi_en_dos_idiomes(self):
+        s = self.s
+        st, es = s.get("/api/srd")
+        st2, va = s.get("/api/srd?lang=va")
+        self.assertEqual((st, st2), (200, 200))
+        self.assertEqual(len(es["entradas"]), len(va["entradas"]))
+        nom = {e["k"] + "/" + e["id"]: e["e"]["nombre"] for e in va["entradas"]}
+        self.assertEqual(nom["conjuro/fireball"], "Bola de foc")
+        self.assertIn("Concentració", json.dumps(va["entradas"], ensure_ascii=False))
+        # les dades de joc (PX, VD, nivell…) són les mateixes
+        self.assertEqual([e["c"] for e in es["entradas"]], [e["c"] for e in va["entradas"]])
+
     # ---------------------------------------------------------------- llapis i música
     def test_llapis(self):
         st, _ = self.s.req("/api/draw", {"map": "m1", "pts": [[1, 1], [2, 2]], "col": "#8C2A1C"}, self.pj)

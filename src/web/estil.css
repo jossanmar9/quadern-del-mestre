@@ -262,3 +262,23 @@
 .snd-list input[type=range]{flex:1;min-width:70px;max-width:180px;accent-color:var(--accent)}
 .trk-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (max-width:760px){.snd-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* v1.4: regles de la partida i càrrega */
+.camp-new{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end}
+.camp-new .field{flex:1 1 220px}
+.rules-presets{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.rules-preset{display:flex;flex-direction:column;gap:4px;text-align:left;padding:12px 14px;border:1px solid var(--line-2);border-radius:var(--r);background:var(--surface);color:var(--ink);cursor:pointer;font:inherit}
+.rules-preset span{font-size:14px;color:var(--muted);line-height:1.35}
+.rules-preset[aria-pressed="true"]{border-color:var(--accent);outline:2px solid var(--accent);outline-offset:-2px;background:var(--accent-soft)}
+.rules-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px 20px}
+.rules-grp{border:1px solid var(--line);border-radius:var(--r);padding:10px 14px 14px;margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.rules-grp legend{font:500 13px/1 var(--f-label);letter-spacing:.14em;color:var(--gold);padding:0 6px;text-transform:uppercase}
+.rules-grp select{width:100%}
+.carry{margin-top:10px}
+.carry-bar{height:6px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
+.carry-bar i{display:block;height:100%;background:var(--good)}
+.carry.high .carry-bar i{background:var(--gold)}
+.carry.over .carry-bar i{background:var(--blood)}
+.carry b{color:var(--blood)}
+.cp-lang{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-bottom:10px}
+.cp-ia{color:var(--gold);font-style:italic}

@@ -66,11 +66,34 @@ Hi ha dues **partides d'exemple**, la manera més ràpida de provar-ho tot. Cada
 - **La cripta del rei oblidat**: una cripta amb esquelets i una porta secreta. La boira es revela a mà.
 - **L'emboscada del gual**: un camí de bosc, un riu i un campament de goblins, amb boira automàtica.
 
-**Exportar** baixa una partida sencera (amb les imatges i la música) en un fitxer `.zip`, per a passar-la a un altre ordinador, compartir una aventura o guardar-la a part. **Importar una partida** l'obri en un altre Quadern: es crea com a partida nova i no en substitueix cap.
+**Exportar** baixa una partida sencera (amb les imatges i la música) en un fitxer `.zip`, per a passar-la a un altre ordinador, compartir una aventura o guardar-la a part. **Importar una partida** l'obri en un altre Quadern: es crea com a partida nova i no en substituïx cap.
 
 **Còpies** mostra les còpies de seguretat de la partida, i des d'ací es pot **Restaurar** qualsevol. Vegeu [les còpies de seguretat](#les-dades-i-les-còpies-de-seguretat).
 
 ![La pestanya Partides.](imatges/ca/03-partides.jpg)
+
+## Regles de la partida
+
+Cada partida té les seues regles. En crear-ne una, tria'n una configuració ràpida, i després ajusta-les quan vulgues amb el botó **Regles** de la partida oberta:
+
+- **Estàndard 2024:** les regles bàsiques del SRD, tal com venen.
+- **Per a principiants:** PG fixos en pujar de nivell, els monstres iguals tiren la iniciativa junts, els jugadors veuen els PG dels monstres amb números i els mapes nous porten boira automàtica.
+- **Exigent:** diagonals variants, PG tirats, els jugadors no saben la vida dels monstres, les salvacions contra la mort són secretes, cadascú veu només les seues tirades (i les del màster), es controla la càrrega i hi ha boira automàtica.
+
+| Opció | Què canvia |
+|---|---|
+| **Unitats** | Metres (1,5 m per casella) o peus (5 peus per casella) al regle, les àrees, la velocitat i la visió. |
+| **Diagonals** | Cada diagonal compta una casella, o alternen 1 i 2 caselles. |
+| **Boira dels mapes nous** | Manual o automàtica, i la distància de visió. |
+| **PG en pujar de nivell** | Que trie el jugador, sempre el valor fix o sempre tirant el dau. |
+| **Inspiració heroica** | Es pot llevar de les fitxes. |
+| **Càrrega** | Mostra el pes que pot portar cada personatge (Força × 7,5 kg) i avisa si en porta massa. |
+| **Iniciativa dels monstres** | Una tirada per criatura, o una per a cada grup de monstres iguals. |
+| **Colps crítics** | Doblar els daus de dany, o el màxim dels daus més una tirada. |
+| **Concentració** | Tirar sola la salvació quan es rep dany, o no. |
+| **Vida dels monstres** | Els jugadors la veuen amb paraules (ferit, malferit…), amb números o gens. |
+| **Salvacions contra la mort** | Públiques, o només per al jugador i el màster. |
+| **Tirades dels altres jugadors** | Les veu tothom, o cadascú veu les seues i les del màster. |
 
 ## El mapa
 
@@ -140,7 +163,7 @@ Cada jugador crea i edita les seues fitxes. El màster les pot editar totes, can
 - El bonificador de competència, les salvacions, les habilitats i la iniciativa es calculen sols. Un clic al cercle d'una habilitat la fa competent (●) o experta (◆).
 - **Dany**, **Curació** i **Temporals** apliquen els PG bé (primer gasten els temporals). **Descans curt** tira un dau de colp; **descans llarg** ho restableix tot.
 - Prem el retrat per a pujar una imatge del teu personatge.
-- **Pujar de nivell** guia el canvi de nivell: tria si sumes els PG fixos o tires el dau de golpe, i mostra com canvien els PG, els daus de golpe, el bonificador de competència i els espais de conjur. També ensenya els trets de classe del nivell nou (del compendi). Quan el personatge té prou PX, el botó es destaca.
+- **Pujar de nivell** guia el canvi de nivell: tria si sumes els PG fixos o tires el dau de colp, i mostra com canvien els PG, els daus de colp, el bonificador de competència i els espais de conjur. També ensenya els trets de classe del nivell nou (del compendi). Quan el personatge té prou PX, el botó es destaca.
 
 ## Atacs, conjurs i inventari
 
@@ -175,7 +198,9 @@ La dificultat de l'encontre (baixa, moderada, alta) es calcula amb els PX dels m
 
 ![El bestiari i el preparador d'encontres.](imatges/ca/16-compendi.jpg)
 
-El compendi porta el SRD 5.2.1 sencer amb la traducció oficial al castellà de Wizards of the Coast: 330 criatures, 339 conjurs, objectes màgics, estats, equip, classes, espècies, dots i regles. Té cerca i filtres per tipus, VD, nivell, classe i raresa.
+El compendi porta el SRD 5.2.1 sencer: 330 criatures, 339 conjurs, objectes màgics, estats, equip, classes, espècies, dots i regles. Té cerca i filtres per tipus, VD, nivell, classe i raresa.
+
+Es pot llegir **en valencià** o **en castellà** amb els botons de dalt. La versió en valencià és una traducció **no oficial**, feta amb IA a partir de la traducció oficial al castellà de Wizards of the Coast; si dubtes d'una regla, consulta la castellana. Cada aparell recorda el que ha triat.
 
 - **Al combat**, **Al combat i al mapa** o **A l'encontre** des de cada monstre.
 - El **preparador d'encontres** suma els PX i mostra la dificultat per al teu grup.
@@ -212,7 +237,7 @@ Els jugadors veuen el compendi sense el bestiari.
 
 **Al mòbil.** Tot s'adapta a una columna. Al mapa, mou amb un dit i fes zoom amb dos.
 
-**Idioma i tema.** **VAL** i **CAS** canvien l'idioma, i el botó de la lluna (◐ ☀ ☾) el tema: automàtic, clar o fosc. Cada aparell recorda els seus. El text del compendi és sempre la traducció oficial al castellà.
+**Idioma i tema.** **VAL** i **CAS** canvien l'idioma, i el botó de la lluna (◐ ☀ ☾) el tema: automàtic, clar o fosc. Cada aparell recorda els seus. L'idioma del compendi es tria al mateix compendi.
 
 ![El mapa en un mòbil.](imatges/ca/20-mobil.jpg)
 

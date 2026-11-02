@@ -18,7 +18,7 @@
 # Commons Reconeixement 4.0 Internacional (https://creativecommons.org/licenses/by/4.0/legalcode).
 # Projecte de fans no oficial, sense relació amb Wizards of the Coast.
 """
-Quadern del Mestre (versió 1.3) — servidor local per a portar partides de rol.
+Quadern del Mestre (versió 1.4) — servidor local per a portar partides de rol.
 
 Tot va en aquest únic fitxer: el servidor, la pàgina web i el compendi SRD 5.2.1.
 Un ordinador l'executa i la resta s'hi connecta des del navegador.
@@ -57,7 +57,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-VERSION = "1.3"
+VERSION = "1.4"
 FROZEN = getattr(sys, "frozen", False)          # executable de Windows fet amb PyInstaller
 DIR = Path(sys.executable).resolve().parent if FROZEN else Path(__file__).resolve().parent
 INSTALLAT = (DIR / "installat").exists()       # el posen l'instal·lador de Windows i el paquet .deb
@@ -222,9 +222,12 @@ def activate(cid):
         print(f"[!] No s'ha pogut fer la còpia de seguretat de {cid}: {e}")
 
 
-def new_campaign(name):
+def new_campaign(name, rules=None):
     cid = slugify(name)
-    write_json(camp_file(cid), {"docs": {"campaign/main": {"name": name}}})
+    main = {"name": name}
+    if rules:
+        main["rules"] = rules
+    write_json(camp_file(cid), {"docs": {"campaign/main": main}})
     return cid
 
 
@@ -539,6 +542,33 @@ def auto_reveal(mid):
     return changed
 
 
+# ---------------------------------------------------------------- regles de la partida
+RULES = {"units": ("m", "ft"), "diag": ("one", "alt"), "fog": ("manual", "auto"), "hpLevel": ("choose", "fixed", "roll"),
+         "insp": (True, False), "weight": (True, False), "init": ("each", "group"), "crit": ("double", "max"),
+         "conc": (True, False), "monsterHp": ("words", "numbers", "none"), "deathSaves": ("public", "dm"), "rolls": ("all", "own")}
+
+
+def clean_rules(r):
+    """Només les regles conegudes, amb valors vàlids."""
+    out = {}
+    if not isinstance(r, dict):
+        return out
+    for k, allowed in RULES.items():
+        v = r.get(k)
+        if any(v is a or (type(v) is type(a) and v == a) for a in allowed):
+            out[k] = v
+    try:
+        if "vision" in r:
+            out["vision"] = max(1.5, min(45.0, float(r["vision"])))
+    except (TypeError, ValueError):
+        pass
+    return out
+
+
+def rule(k, default):
+    return ((state["docs"].get("campaign/main") or {}).get("rules") or {}).get(k, default)
+
+
 def visible_to(path, doc, sess):
     """El màster ho veu tot. Els jugadors no veuen el que és secret, ni el que tapa la boira."""
     if doc is None or sess["dm"]:
@@ -581,13 +611,16 @@ def visible_to(path, doc, sess):
     if s[0] == "combat":
         out = dict(doc)
         lst = []
+        mhp = rule("monsterHp", "words")
         for c in doc.get("list") or []:
             if c.get("hidden"):
                 continue
             if c.get("kind") != "pc":
-                word = hp_word(c.get("hp"), c.get("maxHp"))
-                c = {k: v for k, v in c.items() if k not in ("hp", "maxHp", "tmp", "ac", "notes", "monster")}
-                c["state"] = word
+                word = hp_word(c.get("hp"), c.get("maxHp")) if mhp == "words" else ""
+                drop = ("ac", "notes", "monster") if mhp == "numbers" else ("hp", "maxHp", "tmp", "ac", "notes", "monster")
+                c = {k: v for k, v in c.items() if k not in drop}
+                if mhp != "numbers":
+                    c["state"] = word
             lst.append(c)
         out["list"] = lst
         return out
@@ -600,9 +633,13 @@ def visible_to(path, doc, sess):
         return doc
     if s[0] == "characters" and doc.get("secret"):
         return None
+    if s[0] == "characters" and rule("deathSaves", "public") == "dm" and doc.get("ownerId") != sess["uid"]:
+        return {k: v for k, v in doc.items() if k != "death"}
     if s[0] == "rolls":
         out = dict(doc)
-        out["list"] = [r for r in doc.get("list") or [] if not r.get("priv") or r.get("uid") == sess["uid"]]
+        own = rule("rolls", "all") == "own"
+        out["list"] = [r for r in doc.get("list") or [] if (not r.get("priv") or r.get("uid") == sess["uid"])
+                       and (not own or r.get("uid") == sess["uid"] or r.get("dm"))]
         return out
     return doc
 
@@ -678,8 +715,8 @@ def related(paths):
     extra = []
     for p in paths:
         s = seg(p)
-        if p == "campaign/main":
-            extra += [k for k in docs if k.startswith("maps/")]
+        if p == "campaign/main":     # el mapa ensenyat i les regles canvien què veu cadascú
+            extra += [k for k in docs if k.startswith("maps/") or k.startswith("characters/") or k in ("combat/main", "rolls/main")]
         elif s[0] == "maps" and len(s) == 2:
             extra += [k for k in docs if k.startswith(p + "/")]
     return list(dict.fromkeys(paths + extra))
@@ -776,12 +813,15 @@ class Handler(BaseHTTPRequestHandler):
         if route == "/api/hello":
             return self._json(200, {"quadern": 1, "version": VERSION})
         if route == "/api/srd":
+            va = (self._query().get("lang") or [""])[0] == "va" and SRD_VA_GZ
+            blob = SRD_VA_GZ if va else SRD_GZ
+            tag = f'"srd-{"va" if va else "es"}-{VERSION}"'
             if "gzip" in (self.headers.get("Accept-Encoding") or ""):
-                return self._send(200, SRD_GZ, "application/json; charset=utf-8",
-                                  {"Content-Encoding": "gzip", "Cache-Control": "max-age=86400",
-                                   "ETag": f'"srd-{VERSION}"'})
-            return self._send(200, gzip.decompress(SRD_GZ), "application/json; charset=utf-8",
-                              {"Cache-Control": "max-age=86400"})
+                return self._send(200, blob, "application/json; charset=utf-8",
+                                  {"Content-Encoding": "gzip", "Cache-Control": "max-age=86400", "ETag": tag,
+                                   "X-Quadern-Srd": "va" if va else "es"})
+            return self._send(200, gzip.decompress(blob), "application/json; charset=utf-8",
+                              {"Cache-Control": "max-age=86400", "X-Quadern-Srd": "va" if va else "es"})
         if route == "/api/invite":
             urls = lan_urls() or [f"http://localhost:{state['port']}"]
             return self._json(200, {"list": [{"url": u, "svg": qr_svg(u)} for u in urls]})
@@ -824,7 +864,7 @@ class Handler(BaseHTTPRequestHandler):
         cid = (self._query().get("id") or [""])[0]
         with lock:
             if not re.fullmatch(r"[a-z0-9-]{1,60}", cid) or not camp_file(cid).exists():
-                return self._json(404, {"error": "Aquesta partida ja no existeix."})
+                return self._json(404, {"error": "Aquesta partida ja no existix."})
             if cid == state["active"]:
                 save_now()
             name, blob = export_zip(cid)
@@ -928,6 +968,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(400, {"error": "Petició mal formada"})
         if mode != "delete" and len(json.dumps(data)) > 600_000:
             return self._json(413, {"error": "Document massa gran"})
+        if path == "campaign/main" and mode != "delete" and "rules" in data:
+            data = {**data, "rules": clean_rules(data["rules"])}
         with lock:
             if body.get("camp") and body.get("camp") != state["active"]:
                 return self._json(409, {"error": "S'ha obert una altra partida."})
@@ -967,7 +1009,10 @@ class Handler(BaseHTTPRequestHandler):
         r = dict(r)
         r["uid"] = sess["uid"]
         r["ts"] = int(time.time() * 1000)
-        r["priv"] = bool(r.get("priv")) and sess["dm"]
+        r["dm"] = sess["dm"]
+        # una salvació contra la mort pot ser secreta (només per a qui la tira i el màster) si les regles ho diuen
+        secret_death = r.get("kind") == "death" and rule("deathSaves", "public") == "dm"
+        r["priv"] = bool(r.get("priv")) and (sess["dm"] or secret_death)
         with lock:
             doc = state["docs"].setdefault("rolls/main", {"list": []})
             doc["list"] = ([r] + list(doc.get("list") or []))[:80]
@@ -1071,18 +1116,18 @@ class Handler(BaseHTTPRequestHandler):
                 if not name:
                     return self._json(400, {"error": "Posa-li un nom a la partida."})
                 save_now()
-                activate(new_campaign(name))
+                activate(new_campaign(name, clean_rules(body.get("rules"))))
                 switched = True
             elif action == "switch":
                 if not camp_file(cid).exists():
-                    return self._json(404, {"error": "Aquesta partida ja no existeix."})
+                    return self._json(404, {"error": "Aquesta partida ja no existix."})
                 if cid != state["active"]:
                     save_now()
                     activate(cid)
                     switched = True
             elif action == "duplicate":
                 if not camp_file(cid).exists():
-                    return self._json(404, {"error": "Aquesta partida ja no existeix."})
+                    return self._json(404, {"error": "Aquesta partida ja no existix."})
                 save_now()
                 docs = read_json(camp_file(cid)).get("docs", {})
                 new_name = name or (camp_name(docs, cid) + " (còpia)")
@@ -1096,7 +1141,7 @@ class Handler(BaseHTTPRequestHandler):
                 if cid == state["active"]:
                     return self._json(400, {"error": "No pots esborrar la partida oberta. Obri'n una altra primer."})
                 if not camp_file(cid).exists():
-                    return self._json(404, {"error": "Aquesta partida ja no existeix."})
+                    return self._json(404, {"error": "Aquesta partida ja no existix."})
                 TRASH_DIR.mkdir(exist_ok=True)
                 stamp = time.strftime("%Y%m%d-%H%M%S")
                 camp_file(cid).replace(TRASH_DIR / f"{cid}-{stamp}.json")
@@ -1104,11 +1149,11 @@ class Handler(BaseHTTPRequestHandler):
                     files_dir(cid).replace(TRASH_DIR / f"{cid}-{stamp}-fitxers")
             elif action == "backups":
                 if not camp_file(cid).exists():
-                    return self._json(404, {"error": "Aquesta partida ja no existeix."})
+                    return self._json(404, {"error": "Aquesta partida ja no existix."})
                 return self._json(200, {"id": cid, "list": list_backups(cid)})
             elif action == "backup":
                 if not camp_file(cid).exists():
-                    return self._json(404, {"error": "Aquesta partida ja no existeix."})
+                    return self._json(404, {"error": "Aquesta partida ja no existix."})
                 if cid == state["active"]:
                     save_now()
                 make_backup(cid, campaign_docs(cid), "ma")
@@ -1117,7 +1162,7 @@ class Handler(BaseHTTPRequestHandler):
                 bid = str(body.get("backup") or "")
                 bf = backup_dir(cid) / f"{bid}.json"
                 if not camp_file(cid).exists() or not BACKUP_RE.fullmatch(bid) or not bf.exists():
-                    return self._json(404, {"error": "Aquesta còpia ja no existeix."})
+                    return self._json(404, {"error": "Aquesta còpia ja no existix."})
                 try:
                     docs = check_docs(read_json(bf).get("docs"))
                 except Exception:  # noqa: BLE001
@@ -1237,6 +1282,10 @@ __PAGE__
 """))
 SRD_GZ = base64.b64decode("""
 __SRD__
+""")
+# Traducció no oficial al valencià (feta amb IA a partir de la castellana); buida si no s'ha generat
+SRD_VA_GZ = base64.b64decode("""
+__SRD_VA__
 """)
 ICONA_PNG = "".join("""
 __ICONA__

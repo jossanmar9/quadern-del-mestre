@@ -41,10 +41,10 @@ Funciona en **Windows y Linux**. Se instala como cualquier otro programa y las p
 | **Niebla de guerra** | El máster revela zonas a mano, o deja que se revelen solas con lo que ven los personajes (las paredes, las puertas cerradas, la roca y los árboles tapan la vista). Los jugadores no reciben nada de lo que hay debajo, ni las fichas ocultas. |
 | **Personajes** | Fichas completas con las reglas de 2024: características, habilidades, salvaciones, PG, ataques, conjuros con espacios, inventario, monedas, estados, descansos y retrato. Todas las tiradas se hacen desde la ficha. **Subir de nivel** guiado: PG, competencia, espacios de conjuro y rasgos de clase. |
 | **Combate** | Iniciativa, turnos y rondas, daño y curación, estados con **duración en rondas** y monstruos ocultos. Tira sola la salvación de **concentración** cuando hace falta. Calcula la dificultad del encuentro. Los jugadores ven «Herido» o «Malherido» en lugar de los PG de los monstruos. |
-| **Compendio** | El SRD 5.2.1 con la traducción oficial al castellano: 330 criaturas, 339 conjuros, objetos mágicos, estados, equipo, clases y reglas. Preparador de encuentros y monstruos propios. |
+| **Compendio** | El SRD 5.2.1 entero: 330 criaturas, 339 conjuros, objetos mágicos, estados, equipo, clases y reglas. **En castellano** (traducción oficial) **o en valenciano** (traducción no oficial, hecha con IA), a elegir con un clic. Preparador de encuentros y monstruos propios. |
 | **Diario** | Un diario de sesiones que escribe toda la mesa, y documentos (cartas, pistas, imágenes) que el máster enseña cuando quiere. |
 | **Máster** | Generadores de nombres, PNJ, tabernas, botín y encuentros, tablas aleatorias propias, notas secretas y **música y ambiente** (lluvia, tormenta, hoguera, cueva… y tus pistas). |
-| **Partidas** | Varias partidas guardadas, **copias de seguridad automáticas**, **exportar e importar** partidas en un `.zip`, dos partidas de ejemplo y la contraseña del máster. |
+| **Partidas** | Varias partidas guardadas, cada una con sus **reglas** (unidades, diagonales, PG al subir de nivel, iniciativa, críticos, qué ven los jugadores…), **copias de seguridad automáticas**, **exportar e importar** partidas en un `.zip`, dos partidas de ejemplo y la contraseña del máster. |
 
 Además: **dados** compartidos con ventaja, desventaja y tiradas secretas, un **lápiz** para dibujar sobre el mapa, entrada con **QR**, **modo oscuro** y adaptado al **móvil**. Si se pierde la conexión, lo avisa y guarda los cambios cuando vuelve. Todo el programa está en **castellano y valenciano**, y cada jugador elige su idioma.
 
@@ -82,7 +82,8 @@ Más detalles, el cortafuegos de Linux y cómo pasar las partidas de la versión
 
 1. Abre **Quadern del Mestre**. Se abre una ventanita con la dirección para los demás, un **código QR** y la **contraseña del máster**, y el navegador ya con la app. Mientras la ventana esté abierta, el Quadern funciona; al cerrarla, lo guarda todo y se detiene.
 2. Quien quiera ser máster marca «Soy el máster» y escribe la contraseña. Los jugadores escanean el QR con el móvil y entran solo con el nombre.
-3. Para probarlo todo enseguida, ve a **Partidas → Crear la partida de ejemplo**.
+3. Para probarlo todo enseguida, ve a **Partidas** y crea una de las partidas de ejemplo.
+4. Al crear una partida, elige las **reglas**: *Estándar 2024*, *Para principiantes* o *Exigente*. Después se pueden ajustar una a una con el botón **Reglas**.
 
 Opciones para el terminal:
 
@@ -127,7 +128,8 @@ Solo hace falta **Python 3.8 o más nuevo**, sin dependencias. `quadern.py` se g
 | `src/servidor.py` | El servidor: permisos del máster, niebla de guerra y línea de visión, imágenes y sonidos, copias, exportar e importar |
 | `src/finestra.py` | La ventanita con la dirección, el QR y la contraseña (Tk) |
 | `src/qr.py` | El generador de códigos QR |
-| `src/srd/srd-es.json.gz` | El compendio SRD 5.2.1 en castellano |
+| `src/srd/srd-es.json.gz`, `srd-va.json.gz` | El compendio SRD 5.2.1 en castellano (oficial) y en valenciano (no oficial) |
+| `src/web/regles.js` | Las reglas de cada partida y las configuraciones rápidas |
 | `src/web/nucli.js`, `daus.js` | Utilidades, idioma, conexión, ventanas y dados |
 | `src/web/mapa.js` | El editor de mapas |
 | `src/web/fitxes.js`, `combat.js`, `compendi.js` | Fichas, combate y compendio |
@@ -138,6 +140,7 @@ Solo hace falta **Python 3.8 o más nuevo**, sin dependencias. `quadern.py` se g
 | `tests/` | Las pruebas automáticas del servidor |
 | `paquets/` | El instalador de Windows (Inno Setup) y los archivos del menú de Linux |
 | `eines/` | Comprobar traducciones, hacer los manuales en PDF, los paquetes de Linux y la web |
+| `eines/traduccio/` | El glosario y la herramienta para traducir el compendio al valenciano |
 
 Después de cambiar algo:
 
@@ -183,6 +186,7 @@ Las propuestas de mejora y las correcciones son bienvenidas. Si has encontrado u
 Este proyecto se ha hecho con ayuda de IA:
 - **Imágenes:** el logo se ha generado con IA.
 - **Código y documentación:** el programa, las traducciones, los README, los manuales, los paquetes y la web se han escrito con un asistente de IA (Claude, de Anthropic) y se han revisado a mano.
+- **Compendio en valenciano:** el SRD 5.2.1 se ha traducido al valenciano con IA a partir de la traducción oficial al castellano, siguiendo la normativa de la AVL y un glosario común ([`eines/traduccio/glossari.md`](eines/traduccio/glossari.md)). Es una traducción no oficial; si encuentras errores, abre una incidencia.
 
 ## Licencia
 

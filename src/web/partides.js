@@ -6,11 +6,13 @@ TABS.partides = {label: L('Partides'), dmOnly: true, render: renderCamps};
 let campCache = null;
 async function renderCamps() {
   $('#main').innerHTML = `<div class="camps"><div><h2 style="font-size:32px">${esc(t('Partides guardades'))}</h2><p class="muted" style="margin:6px 0 0;max-width:62ch">${esc(t("Cada partida guarda els seus mapes, personatges, combat, diari i documents. Quan n'obris una, tots els que estan connectats hi passen."))}</p></div>
-    <form class="panel camp-new" id="camp-new"><label class="field"><span>${esc(t('Partida nova'))}</span><input class="in" id="cn-name" required maxlength="80" placeholder="${esc(t('La maledicció del bosc'))}"></label><button class="btn pri" type="submit">${esc(t('Crear i obrir'))}</button></form>
+    <form class="panel camp-new" id="camp-new"><label class="field"><span>${esc(t('Partida nova'))}</span><input class="in" id="cn-name" required maxlength="80" placeholder="${esc(t('La maledicció del bosc'))}"></label>
+      <label class="field"><span>${esc(t('Regles'))}</span><select class="in" id="cn-rules">${RULE_PRESETS.map(([id, nm]) => `<option value="${id}">${esc(t(nm))}</option>`).join('')}</select></label><button class="btn pri" type="submit">${esc(t('Crear i obrir'))}</button>
+      <p class="small muted" style="margin:0;flex-basis:100%">${esc(t('Després es poden ajustar una per una amb el botó «Regles» de la partida.'))}</p></form>
     <div id="camp-list" class="camp-list"><p class="muted">${esc(t('Carregant…'))}</p></div>
     <div class="panel pw-box"><h3>${esc(t('Contrasenya del màster'))}</h3><p class="small muted">${esc(t('Qui entre amb aquesta contrasenya serà màster (pot haver-n\'hi més d\'un). La resta entra només amb el nom.'))}</p>
       <div class="row"><code class="pw" id="pw-show">••••••</code><button class="btn sm" id="pw-see">${esc(t('Mostrar'))}</button><input class="in" id="pw-new" placeholder="${esc(t('Contrasenya nova'))}" style="width:200px"><button class="btn sm" id="pw-set">${esc(t('Canviar'))}</button></div></div>
-    <div class="panel"><h3>${esc(t('Importar una partida'))}</h3><p class="small muted">${esc(t('Obri una partida exportada des d\'un altre ordinador (un fitxer .zip). Es crea com a partida nova; no en substitueix cap.'))}</p><button class="btn" id="camp-import">${esc(t('Triar el fitxer…'))}</button></div>
+    <div class="panel"><h3>${esc(t('Importar una partida'))}</h3><p class="small muted">${esc(t('Obri una partida exportada des d\'un altre ordinador (un fitxer .zip). Es crea com a partida nova; no en substituïx cap.'))}</p><button class="btn" id="camp-import">${esc(t('Triar el fitxer…'))}</button></div>
     <div class="panel"><h3>${esc(t('Partides d\'exemple'))}</h3><p class="small muted">${esc(t('Crea una partida preparada per a provar-ho tot: mapa amb boira, personatges, monstres, diari, un document i notes del màster.'))}</p>
       <div class="ex-list"><div><b>${esc(t('La cripta del rei oblidat'))}</b><p class="small muted">${esc(t('Una cripta amb esquelets, una porta secreta i un tumulari. Boira revelada a mà.'))}</p><button class="btn" data-example="cripta">${esc(t('Crear'))}</button></div>
       <div><b>${esc(t('L\'emboscada del gual'))}</b><p class="small muted">${esc(t('Un camí de bosc, un riu i un campament de goblins. Amb boira automàtica: el mapa es revela a mesura que avancen els personatges.'))}</p><button class="btn" data-example="gual">${esc(t('Crear'))}</button></div></div></div>
@@ -23,7 +25,8 @@ function drawCampList(d) {
   box.innerHTML = d.list.map(c => `<article class="camp-card${c.active ? ' on' : ''}"><div class="cc-head"><h3 class="cc-name">${esc(c.name)}</h3>${c.active ? `<span class="chip dm">${esc(t('Oberta'))}</span>` : ''}</div>
     <p class="muted small" style="margin:0">${esc(pl(c.maps, 'mapa', 'mapes'))} · ${esc(pl(c.characters, 'personatge', 'personatges'))} · ${esc(pl(c.sessions, 'sessió', 'sessions'))}</p>
     <p class="muted small" style="margin:0;font-style:italic">${esc(t('Darrer canvi {x}', {x: ago(c.updated)}))}</p>
-    <div class="row" style="margin-top:6px">${c.active ? '' : `<button class="btn pri sm" data-copen="${c.id}">${esc(t('Obrir'))}</button>`}<button class="btn sm" data-cdup="${c.id}">${esc(t('Duplicar'))}</button><button class="btn sm" data-cexp="${c.id}">${esc(t('Exportar'))}</button><button class="btn sm" data-cbak="${c.id}">${esc(t('Còpies'))}</button>${c.active ? '' : `<button class="btn sm danger" data-cdel="${c.id}">${esc(t('Esborrar'))}</button>`}</div></article>`).join('');
+    ${c.active ? `<p class="small" style="margin:0">${esc(t('Regles'))}: <b>${esc(t(presetOf(camp().rules || {})))}</b></p>` : ''}
+    <div class="row" style="margin-top:6px">${c.active ? '' : `<button class="btn pri sm" data-copen="${c.id}">${esc(t('Obrir'))}</button>`}<button class="btn sm" data-cdup="${c.id}">${esc(t('Duplicar'))}</button>${c.active ? `<button class="btn sm" id="camp-rules">${esc(t('Regles'))}</button>` : ''}<button class="btn sm" data-cexp="${c.id}">${esc(t('Exportar'))}</button><button class="btn sm" data-cbak="${c.id}">${esc(t('Còpies'))}</button>${c.active ? '' : `<button class="btn sm danger" data-cdel="${c.id}">${esc(t('Esborrar'))}</button>`}</div></article>`).join('');
 }
 /* ---------- exportar, importar i còpies de seguretat ---------- */
 function exportCamp(id) {
@@ -73,7 +76,8 @@ async function backupsModal(id) {
 }
 document.addEventListener('submit', async e => {
   if (e.target.id !== 'camp-new') return; e.preventDefault(); const n = $('#cn-name').value.trim(); if (!n) return;
-  try {await api('api/campaigns', {action: 'create', name: n}); lsSet('qm-tab', 'mapa')} catch (err) {toast(err.message)}
+  const pre = RULE_PRESETS.find(p => p[0] === $('#cn-rules').value) || RULE_PRESETS[0];
+  try {await api('api/campaigns', {action: 'create', name: n, rules: {...RULE_DEFAULTS, ...pre[3]}}); lsSet('qm-tab', 'mapa')} catch (err) {toast(err.message)}
 });
 document.addEventListener('click', async e => {
   if (st.tab !== 'partides') return; const x = e.target;
@@ -81,6 +85,7 @@ document.addEventListener('click', async e => {
   if (ex) {exportCamp(ex.dataset.cexp); return}
   if (bk) {backupsModal(bk.dataset.cbak); return}
   if (x.id === 'camp-import') {importCamp(); return}
+  if (x.id === 'camp-rules') {rulesModal(); return}
   try {
     if (o) {o.disabled = true; lsSet('qm-tab', 'mapa'); await api('api/campaigns', {action: 'switch', id: o.dataset.copen})}
     if (du) {drawCampList(await api('api/campaigns', {action: 'duplicate', id: du.dataset.cdup})); toast(t('Partida duplicada.'))}
@@ -131,7 +136,7 @@ function seedCrypt() {
   [['skeleton', 16, 11, 'Esqueleto 1'], ['skeleton', 19, 15, 'Esqueleto 2'], ['zombie', 14, 5, 'Zombi 1'], ['zombie', 21, 5, 'Zombi 2'], ['wight', 17, 2, 'Tumulario']].forEach(([m, x, y, n]) => write(`maps/${mid}/tokens/${newId()}`, {x, y, size: 1, name: n, color: '#444444', monster: m}));
   write('campaign/main', {name: t('La cripta del rei oblidat'), activeMap: mid}, 'update');
   write('journal/' + newId(), {n: 1, date: Date.now(), title: t('El poble de Vilafosca'), ownerId: S.uid, created: Date.now(),
-    body: t("El grup arriba a Vilafosca, un poble de pastors on fa setmanes que desapareix el bestiar.\n\n# Què hem descobert\n- El prior Bernat diu que de nit s'han vist llums a la vella cripta del turó.\n- La taverna **El Corb Adormit** ofereix 50 po a qui torne la campana robada.\n- Tova ha reconegut uns símbols d'un culte antic a la porta de la cripta.\n\n*Al final de la sessió, el grup baixa per l'escala de la cripta…*")});
+    body: t("El grup arriba a Vilafosca, un poble de pastors on fa setmanes que desapareix el bestiar.\n\n# Què hem descobert\n- El prior Bernat diu que de nit s'han vist llums a la vella cripta del turó.\n- La taverna **El Corb Adormit** oferix 50 po a qui torne la campana robada.\n- Tova ha reconegut uns símbols d'un culte antic a la porta de la cripta.\n\n*Al final de la sessió, el grup baixa per l'escala de la cripta…*")});
   write('handouts/' + newId(), {title: t('Carta del prior'), shown: false, to: [], created: Date.now(), file: null,
     text: t("Amics viatgers:\n\nSi llegiu açò, és que heu decidit ajudar-nos. La cripta del rei Ot fa segles que dorm, però algú l'ha despertada. Baixeu amb llum i amb coratge, i no toqueu la corona del rei.\n\n— Bernat, prior de Vilafosca")});
   write('dmnotes/' + newId(), {title: t('Secrets de la cripta'), updated: Date.now(),

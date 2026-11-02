@@ -43,7 +43,7 @@ function joinRender() {
   $('#main').innerHTML = `<div class="join-wrap"><form id="join" class="panel"><img src="${esc($('.logo').src)}" alt="" width="96" height="96" class="join-logo"><h2>${esc(t('Benvingut al Quadern del Mestre'))}</h2>
     <label class="field"><span>${esc(t('El teu nom'))}</span><input class="in" id="j-name" required maxlength="40" autocomplete="nickname"></label>
     <label class="check"><input type="checkbox" id="j-dm" ${wasDm ? 'checked' : ''}> ${esc(t('Sóc el màster'))}</label>
-    <label class="field" id="j-pw-f" ${wasDm ? '' : 'hidden'}><span>${esc(t('Contrasenya del màster'))}</span><input class="in" id="j-pw" autocomplete="current-password"><small class="muted">${esc(t('Surt a la finestra del servidor en arrancar.'))}</small></label>
+    <label class="field" id="j-pw-f" ${wasDm ? '' : 'hidden'}><span>${esc(t('Contrasenya del màster'))}</span><input class="in" id="j-pw" autocomplete="current-password"><small class="muted">${esc(t('Ix a la finestra del servidor en arrancar.'))}</small></label>
     <p class="small" id="j-err" style="margin:0;color:var(--blood)"></p><button class="btn pri" type="submit">${esc(t('Entrar'))}</button></form></div>`;
   $('#j-name').value = prev; $('#j-name').focus();
   $('#j-dm').onchange = e => {$('#j-pw-f').hidden = !e.target.checked; if (e.target.checked) $('#j-pw').focus()};

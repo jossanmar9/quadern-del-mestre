@@ -39,7 +39,7 @@ function applyStatic() {
   $$('[data-i18n-ph]').forEach(el => {el.placeholder = t(el.dataset.i18nPh); el.setAttribute('aria-label', t(el.dataset.i18nPh))});
   $$('[data-i18n-aria]').forEach(el => {el.setAttribute('aria-label', t(el.dataset.i18nAria))});
 }
-function setLang(l) {if (l === LANG) return; LANG = l; lsSet('qm-lang', l); applyStatic(); renderAll()}
+function setLang(l) {if (l === LANG) return; LANG = l; lsSet('qm-lang', l); applyStatic(); if (!lsGet('qm-srd-lang')) {SRD = null; srdP = null} renderAll()}
 const langSwitch = () => `<span class="langsw" role="group" aria-label="${esc(t('Idioma'))}"><button class="chip${LANG === 'val' ? ' dm' : ''}" data-lang="val" aria-pressed="${LANG === 'val'}">VAL</button><button class="chip${LANG === 'es' ? ' dm' : ''}" data-lang="es" aria-pressed="${LANG === 'es'}">CAS</button></span>`;
 document.addEventListener('click', e => {const b = e.target.closest('[data-lang]'); if (b) setLang(b.dataset.lang)});
 
@@ -143,15 +143,20 @@ function pickImage(kind) {
 }
 
 /* ================= compendi SRD (es carrega quan cal) ================= */
+// El compendi pot ser en valencià (traducció no oficial, feta amb IA) o en castellà (traducció oficial).
+// Per defecte segueix l'idioma de l'app; cada aparell pot triar-lo al compendi.
 let SRD = null, srdP = null;
+const srdLang = () => lsGet('qm-srd-lang') || (LANG === 'es' ? 'es' : 'va');
+function setSrdLang(l) {lsSet('qm-srd-lang', l); resetSRD()}
+function resetSRD() {if (SRD && SRD.lang === srdLang()) return; SRD = null; srdP = null; if (st.loaded) scheduleRender()}
 function loadSRD() {
-  if (SRD) return Promise.resolve(SRD);
-  if (!srdP) srdP = fetch('api/srd').then(r => r.json()).then(d => {
+  if (SRD && SRD.lang === srdLang()) return Promise.resolve(SRD);
+  if (!srdP) {const want = srdLang(); srdP = fetch('api/srd' + (want === 'va' ? '?lang=va' : '')).then(r => r.json().then(d => [d, r.headers.get('X-Quadern-Srd') || 'es'])).then(([d, got]) => {
     const by = {}, idx = {};
     for (const e of d.entradas) {(by[e.k] = by[e.k] || []).push(e); idx[e.k + '/' + e.id] = e}
-    for (const k in by) by[k].sort((a, b) => a.e.nombre.localeCompare(b.e.nombre, 'es'));
-    SRD = {by, idx, names: d.nombres, attr: d.atribucion}; return SRD;
-  }).catch(e => {srdP = null; throw e});
+    for (const k in by) by[k].sort((a, b) => a.e.nombre.localeCompare(b.e.nombre, got === 'va' ? 'ca' : 'es'));
+    SRD = {by, idx, names: d.nombres, attr: d.atribucion, lang: want, real: got}; return SRD;
+  }).catch(e => {srdP = null; throw e})}
   return srdP;
 }
 const srdGet = (k, id) => SRD && SRD.idx[k + '/' + id];
@@ -191,7 +196,7 @@ let pendingRender = false;
 const editing = () => {const a = document.activeElement; return a && a.closest('#main') && a.matches('input:not([type=checkbox]):not([type=range]),textarea,select,[contenteditable]')};
 function docChanged(path) {
   if (!st.loaded) return;
-  if (path === 'campaign/main') renderHeader();
+  if (path === 'campaign/main') {renderHeader(); if (!TABS[st.tab].refresh) {if (editing() || $('.modal')) pendingRender = true; else scheduleRender(); return}}
   if (path.startsWith('rolls/')) {renderLog(); return}
   const tb = TABS[st.tab];
   if (tb.refresh) {tb.refresh(path); return}

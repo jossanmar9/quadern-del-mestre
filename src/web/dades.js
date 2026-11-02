@@ -21,7 +21,7 @@ const CONDS = [['blinded', L('Cec')], ['charmed', L('Encisat')], ['deafened', L(
   ['restrained', L('Immobilitzat')], ['stunned', L('Atordit')], ['unconscious', L('Inconscient')]];
 const EXTRA_CONDS = [['conc', L('Concentració')], ['bless', L('Beneït')], ['hidden', L('Amagat')], ['dodge', L('Esquivant')]];
 
-// Classes del SRD 5.2.1: id, nom, dau de golpe, característica de conjurs, tipus de conjurador
+// Classes del SRD 5.2.1: id, nom, dau de colp, característica de conjurs, tipus de conjurador
 const CLASSES = [['barbarian', L('Bàrbar'), 12, '', ''], ['bard', L('Bard'), 8, 'cha', 'full'], ['cleric', L('Clergue'), 8, 'wis', 'full'],
   ['druid', L('Druida'), 8, 'wis', 'full'], ['fighter', L('Guerrer'), 10, '', ''], ['monk', L('Monjo'), 8, '', ''],
   ['paladin', L('Paladí'), 10, 'cha', 'half'], ['ranger', L('Explorador'), 10, 'wis', 'half'], ['rogue', L('Murri'), 8, '', ''],
@@ -58,7 +58,7 @@ const CR_XP = {'0': 10, '1/8': 25, '1/4': 50, '1/2': 100, '1': 200, '2': 450, '3
 const crNum = cr => cr === '1/8' ? .125 : cr === '1/4' ? .25 : cr === '1/2' ? .5 : +cr;
 
 const CREATURE_TYPES = {Aberration: L('Aberració'), Beast: L('Bèstia'), Celestial: L('Celestial'), Construct: L('Constructe'),
-  Dragon: L('Drac'), Elemental: L('Elemental'), Fey: L('Feèric'), Fiend: L('Diable'), Giant: L('Gegant'), Humanoid: L('Humanoide'),
+  Dragon: L('Drac'), Elemental: L('Elemental'), Fey: L('Feèric'), Fiend: L('Infernal'), Giant: L('Gegant'), Humanoid: L('Humanoide'),
   Monstrosity: L('Monstruositat'), Ooze: L('Llim'), Plant: L('Planta'), Undead: L('No-mort')};
 const SPELL_SCHOOLS = {Abjuration: L('Abjuració'), Conjuration: L('Conjuració'), Divination: L('Endevinació'), Enchantment: L('Encantament'),
   Evocation: L('Evocació'), Illusion: L('Il·lusió'), Necromancy: L('Nigromància'), Transmutation: L('Transmutació')};
@@ -95,9 +95,9 @@ const NAMES = {
 };
 const NPC_TRAITS = [L('Parla molt a poc a poc i pensa abans de cada paraula.'), L('Riu de les seues pròpies bromes abans d\'acabar-les.'),
   L('No mira mai als ulls.'), L('Col·lecciona una cosa estranya i en parla sempre.'), L('Desconfia de qualsevol que porte armes.'),
-  L('És extremadament educat, fins i tot quan amenaça.'), L('Té un tic nerviós quan menteix.'), L('Deu diners a algú perillós.'),
-  L('Busca un familiar desaparegut.'), L('Està convençut que el persegueixen.'), L('Cita refranys a tota hora, i sovint malament.'),
-  L('Vol deixar el seu ofici i viure aventures.'), L('És molt religiós i beneeix tot el que veu.'), L('Té una cicatriu de la qual no vol parlar.'),
+  L('És extremadament educat, fins i tot quan amenaça.'), L('Té un tic nerviós quan mentix.'), L('Deu diners a algú perillós.'),
+  L('Busca un familiar desaparegut.'), L('Està convençut que el perseguixen.'), L('Cita refranys a tota hora, i sovint malament.'),
+  L('Vol deixar el seu ofici i viure aventures.'), L('És molt religiós i beneïx tot el que veu.'), L('Té una cicatriu de la qual no vol parlar.'),
   L('Sempre està menjant alguna cosa.'), L('Exagera tot el que conta.'), L('Odia la màgia i ho diu en veu alta.'), L('És sorprenentment savi per a la seua edat.'),
   L('Fa tractes amb qualsevol si hi ha guany.'), L('Té por de la foscor.')];
 const NPC_JOBS = [L('taverner'), L('ferrer'), L('guàrdia de la ciutat'), L('sacerdot'), L('mercader'), L('pagès'), L('caçador'), L('lladre'),

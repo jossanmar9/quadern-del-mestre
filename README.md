@@ -41,10 +41,10 @@ Funciona a **Windows i Linux**. S'instal·la com qualsevol altre programa i les 
 | **Boira de guerra** | El màster revela zones a mà, o deixa que es revelen soles amb el que veuen els personatges (les parets, les portes tancades, la roca i els arbres tapen la vista). Els jugadors no reben res del que hi ha davall, ni les fitxes amagades. |
 | **Personatges** | Fitxes completes amb les regles de 2024: característiques, habilitats, salvacions, PG, atacs, conjurs amb espais, inventari, monedes, estats, descansos i retrat. Totes les tirades es fan des de la fitxa. **Pujar de nivell** guiat: PG, competència, espais de conjur i trets de classe. |
 | **Combat** | Iniciativa, torns i rondes, dany i curació, estats amb **durada en rondes** i monstres amagats. Tira sola la salvació de **concentració** quan cal. Calcula la dificultat de l'encontre. Els jugadors veuen «Ferit» o «Malferit» en compte dels PG dels monstres. |
-| **Compendi** | El SRD 5.2.1 amb la traducció oficial al castellà: 330 criatures, 339 conjurs, objectes màgics, estats, equip, classes i regles. Preparador d'encontres i monstres propis. |
+| **Compendi** | El SRD 5.2.1 sencer: 330 criatures, 339 conjurs, objectes màgics, estats, equip, classes i regles. **En valencià** (traducció no oficial, feta amb IA) **o en castellà** (traducció oficial), a triar amb un clic. Preparador d'encontres i monstres propis. |
 | **Diari** | Un diari de sessions que escriu tota la taula, i documents (cartes, pistes, imatges) que el màster ensenya quan vol. |
 | **Màster** | Generadors de noms, PNJ, tavernes, botí i encontres, taules aleatòries pròpies, notes secretes i **música i ambient** (pluja, tempesta, foguera, cova… i les teues pistes). |
-| **Partides** | Diverses partides guardades, **còpies de seguretat automàtiques**, **exportar i importar** partides en un `.zip`, dues partides d'exemple i la contrasenya del màster. |
+| **Partides** | Diverses partides guardades, cadascuna amb les seues **regles** (unitats, diagonals, PG en pujar de nivell, iniciativa, crítics, què veuen els jugadors…), **còpies de seguretat automàtiques**, **exportar i importar** partides en un `.zip`, dues partides d'exemple i la contrasenya del màster. |
 
 A més: **daus** compartits amb avantatge, desavantatge i tirades secretes, un **llapis** per a dibuixar damunt del mapa, entrada amb **QR**, **mode fosc** i adaptat al **mòbil**. Si es perd la connexió, ho avisa i guarda els canvis quan torna. Tot el programa està en **valencià i castellà**, i cada jugador tria el seu idioma.
 
@@ -82,7 +82,8 @@ Més detalls, el tallafoc de Linux i com passar les partides de la versió 1.0, 
 
 1. Obri **Quadern del Mestre**. S'obri una finestreta amb l'adreça per als altres, un **codi QR** i la **contrasenya del màster**, i el navegador ja amb l'app. Mentre la finestra estiga oberta, el Quadern funciona; en tancar-la, ho guarda tot i s'atura.
 2. Qui vol ser màster marca «Sóc el màster» i escriu la contrasenya. Els jugadors escanegen el QR amb el mòbil i entren només amb el nom.
-3. Per a provar-ho tot de seguida, ves a **Partides → Crear la partida d'exemple**.
+3. Per a provar-ho tot de seguida, ves a **Partides** i crea una de les partides d'exemple.
+4. En crear una partida, tria les **regles**: *Estàndard 2024*, *Per a principiants* o *Exigent*. Després es poden ajustar una per una amb el botó **Regles**.
 
 Opcions per al terminal:
 
@@ -127,7 +128,8 @@ Només cal **Python 3.8 o més nou**, sense dependències. `quadern.py` es gener
 | `src/servidor.py` | El servidor: permisos del màster, boira de guerra i línia de visió, imatges i sons, còpies, exportar i importar |
 | `src/finestra.py` | La finestreta amb l'adreça, el QR i la contrasenya (Tk) |
 | `src/qr.py` | El generador de codis QR |
-| `src/srd/srd-es.json.gz` | El compendi SRD 5.2.1 en castellà |
+| `src/srd/srd-es.json.gz`, `srd-va.json.gz` | El compendi SRD 5.2.1 en castellà (oficial) i en valencià (no oficial) |
+| `src/web/regles.js` | Les regles de cada partida i les configuracions ràpides |
 | `src/web/nucli.js`, `daus.js` | Utilitats, idioma, connexió, finestres i daus |
 | `src/web/mapa.js` | L'editor de mapes |
 | `src/web/fitxes.js`, `combat.js`, `compendi.js` | Fitxes, combat i compendi |
@@ -138,6 +140,7 @@ Només cal **Python 3.8 o més nou**, sense dependències. `quadern.py` es gener
 | `tests/` | Les proves automàtiques del servidor |
 | `paquets/` | L'instal·lador de Windows (Inno Setup) i els fitxers del menú de Linux |
 | `eines/` | Comprovar traduccions, fer els manuals en PDF, els paquets de Linux i la web |
+| `eines/traduccio/` | El glossari i l'eina per a traduir el compendi al valencià |
 
 Després de canviar alguna cosa:
 
@@ -183,6 +186,7 @@ Les propostes de millora i les correccions són benvingudes. Si has trobat una e
 Aquest projecte s'ha fet amb ajuda d'IA:
 - **Imatges:** el logo s'ha generat amb IA.
 - **Codi i documentació:** el programa, les traduccions, els README, els manuals, els paquets i la web s'han escrit amb un assistent d'IA (Claude, d'Anthropic) i s'han revisat a mà.
+- **Compendi en valencià:** el SRD 5.2.1 s'ha traduït al valencià amb IA a partir de la traducció oficial al castellà, seguint la normativa de l'AVL i un glossari comú ([`eines/traduccio/glossari.md`](eines/traduccio/glossari.md)). És una traducció no oficial; si hi trobes errades, obri una incidència.
 
 ## Llicència
 

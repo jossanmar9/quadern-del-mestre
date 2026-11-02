@@ -51,8 +51,8 @@ function doRoll(label, expr, opts = {}) {
   const adv = opts.adv !== undefined ? opts.adv : dice.adv;
   const r = rollExpr(expr, adv);
   if (!r) {toast(t('No entenc aquesta tirada. Prova amb un format com 2d6+3 o d20-1.')); return null}
-  const priv = dm() && (opts.priv ?? $('#dice-secret').checked);
-  const e = {label: label || expr, expr, total: r.total, detail: r.detail, crit: r.crit, priv, ts: Date.now(), uid: S.uid};
+  const priv = opts.secret || (dm() && (opts.priv ?? $('#dice-secret').checked));
+  const e = {label: label || expr, expr, total: r.total, detail: r.detail, crit: r.crit, priv, ts: Date.now(), uid: S.uid, ...(opts.kind ? {kind: opts.kind} : {})};
   showLast(e, r);
   if (S.token) api('api/roll', {roll: e}).catch(() => toast(t("No s'ha pogut compartir la tirada.")));
   else {localRolls = [e, ...localRolls].slice(0, 30); renderLog()}
@@ -87,5 +87,7 @@ $('#dice-form').addEventListener('submit', e => {e.preventDefault(); const v = $
 $('#dice-fab').addEventListener('click', () => $('#dice').classList.add('open'));
 $('#dice-close').addEventListener('click', () => $('#dice').classList.remove('open'));
 // Botons [data-roll] a qualsevol lloc: tiren l'expressió amb l'etiqueta indicada
-document.addEventListener('click', e => {const b = e.target.closest('[data-roll]'); if (!b) return; e.preventDefault(); doRoll(b.dataset.rollLabel || b.dataset.roll, b.dataset.roll)});
+document.addEventListener('click', e => {const b = e.target.closest('[data-roll]'); if (!b) return; e.preventDefault();
+  const death = b.dataset.rollKind === 'death', secret = death && rules().deathSaves === 'dm';
+  doRoll(b.dataset.rollLabel || b.dataset.roll, b.dataset.roll, death ? {kind: 'death', secret} : {})});
 setInterval(() => {if (document.visibilityState === 'visible' && st.loaded) renderLog()}, 30000);

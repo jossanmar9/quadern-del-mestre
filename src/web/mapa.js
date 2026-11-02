@@ -12,7 +12,7 @@ const mapDoc = () => {const id = mapId(); return id ? (mp.local && mp.local.id =
 const tokens = () => {const id = mapId(); return id ? col('maps/' + id + '/tokens') : []};
 const aoes = () => {const id = mapId(); return id ? col('maps/' + id + '/aoe') : []};
 const view = () => {const id = mapId() || '_'; return mp.views[id] || (mp.views[id] = {x: 20, y: 20, z: 1, fit: true})};
-function blankMap(name) {return {name: name || t('Mapa nou'), cols: 30, rows: 20, units: 1.5, bg: null, grid: {show: true, op: .35}, tiles: {}, walls: {}, labels: [], fog: {on: false, rev: {}}, created: Date.now()}}
+function blankMap(name) {const auto = rules().fog === 'auto'; return {name: name || t('Mapa nou'), cols: 30, rows: 20, units: 1.5, bg: null, grid: {show: true, op: .35}, tiles: {}, walls: {}, labels: [], fog: {on: auto, auto, dist: rules().vision, rev: {}}, created: Date.now()}}
 
 TABS.mapa = {label: L('Mapa'), render: renderMap, refresh: mapRefresh, onLeave: () => {mp.ro && mp.ro.disconnect()}, themeChanged: () => {mp.colors = null; drawSoon()}};
 function mapRefresh(path) {
@@ -48,6 +48,7 @@ function renderMap() {
   </div>`;
   setupCanvas(); renderMapSide(); updateHint();
 }
+const DIAG_TIP = {one: L('Cada diagonal compta com una casella.'), alt: L('Les diagonals alternen: la primera compta una casella, la segona dues…')};
 function toolOptions() {
   const T = mp.tool;
   if (T === 'paint') return `<h3>${esc(t('Terreny'))}</h3><div class="brushes">${TERRAINS.map(([id, nm, v]) => `<button class="brush" data-terr="${id}" aria-pressed="${mp.terrain === id}"><i style="background:var(${v})"></i>${esc(t(nm))}</button>`).join('')}<button class="brush" data-terr="" aria-pressed="${mp.terrain === ''}"><i class="erase"></i>${esc(t('Esborrar'))}</button></div>
@@ -60,12 +61,12 @@ function toolOptions() {
     <div class="seg2">${[['reveal', L('Revelar')], ['hide', L('Amagar')]].map(([k, lb]) => `<button data-fmode="${k}" aria-pressed="${mp.fogMode === k}">${esc(t(lb))}</button>`).join('')}</div>
     <p class="small muted">${esc(t('Arrossega per a fer un rectangle. Tu veus la boira transparent; els jugadors no veuen res del que hi ha davall.'))}</p><div class="row"><button class="btn sm" id="fog-all">${esc(t('Revelar-ho tot'))}</button><button class="btn sm" id="fog-none">${esc(t('Amagar-ho tot'))}</button></div>
     <h3>${esc(t('Boira automàtica'))}</h3><label class="check"><input type="checkbox" id="fog-auto" ${f.auto ? 'checked' : ''}> ${esc(t('Revelar el que veuen els personatges'))}</label>
-    ${f.auto ? `<label class="field"><span>${esc(t('Distància de visió (m)'))}</span><input class="in" type="number" id="fog-dist" min="1.5" max="45" step="1.5" value="${esc(f.dist || 18)}"></label>` : ''}
+    ${f.auto ? `<label class="field"><span>${esc(t('Distància de visió ({u})', {u: unitLbl()}))}</span><input class="in" type="number" id="fog-dist" min="${unitStep()}" max="${toUnit(45)}" step="${unitStep()}" value="${esc(toUnit(f.dist || rules().vision))}"></label>` : ''}
     <p class="small muted">${esc(t('Quan un personatge jugador es mou, es revela el que veu des de la seua fitxa. Les parets, les portes tancades, la roca i els arbres tapen la vista. El que ja s\'ha vist queda revelat.'))}</p>`}
   if (T === 'aoe') return `<h3>${esc(t('Àrea d\'efecte'))}</h3><div class="seg2 wrap">${[['circle', L('Esfera')], ['cone', L('Con')], ['line', L('Línia')], ['cube', L('Cub')]].map(([k, lb]) => `<button data-shape="${k}" aria-pressed="${mp.aoeShape === k}">${esc(t(lb))}</button>`).join('')}</div>
-    <label class="field"><span>${esc(t('Mida (m)'))}</span><input class="in" type="number" id="aoe-size" min="1.5" step="1.5" value="${mp.aoeSize}"></label><p class="small muted">${esc(t('Arrossega des del punt d\'origen. Fes clic damunt d\'una àrea per a llevar-la.'))}</p>
+    <label class="field"><span>${esc(t('Mida ({u})', {u: unitLbl()}))}</span><input class="in" type="number" id="aoe-size" min="${unitStep()}" step="${unitStep()}" value="${toUnit(mp.aoeSize)}"></label><p class="small muted">${esc(t('Arrossega des del punt d\'origen. Fes clic damunt d\'una àrea per a llevar-la.'))}</p>
     ${aoes().length ? `<button class="btn sm" id="aoe-clear">${esc(t(dm() ? 'Llevar totes les àrees' : 'Llevar les meues àrees'))}</button>` : ''}`;
-  if (T === 'ruler') return `<h3>${esc(t('Regle'))}</h3><p class="small muted">${esc(t('Arrossega per a mesurar. Cada casella són {n} m, també en diagonal.', {n: String(mapDoc()?.units || 1.5).replace('.', ',')}))}</p>`;
+  if (T === 'ruler') return `<h3>${esc(t('Regle'))}</h3><p class="small muted">${esc(t('Arrossega per a mesurar. Cada casella són {n}.', {n: distTxt(mapDoc()?.units || 1.5)}))} ${esc(t(DIAG_TIP[rules().diag] || DIAG_TIP.one))}</p>`;
   if (T === 'draw') return `<h3>${esc(t('Llapis'))}</h3><p class="small muted">${esc(t('Dibuixa damunt del mapa per a assenyalar un camí o explicar un pla. Tothom ho veu, i s\'esborra sol al cap d\'uns segons.'))}</p>`;
   if (T === 'ping') return `<h3>${esc(t('Avisar'))}</h3><p class="small muted">${esc(t('Fes clic en un punt del mapa i tothom el veurà ressaltat uns segons.'))}</p>`;
   return `<h3>${esc(t('Moure'))}</h3><p class="small muted">${esc(dm() ? t('Arrossega les fitxes per a moure-les i el fons per a desplaçar el mapa. Roda o pessic per a fer zoom. Doble clic: avisar.') : t('Pots moure les fitxes dels teus personatges. Arrossega el fons per a desplaçar el mapa. Doble clic: avisar.'))}</p>`;
@@ -83,7 +84,7 @@ function renderMapSide() {
   if (mp.panel === 'mapa') body = `<h3>${esc(t('Aquest mapa'))}</h3>
     <label class="field"><span>${esc(t('Nom'))}</span><input class="in" data-mf="name" value="${esc(m.name || '')}"></label>
     <div class="grid2"><label class="field"><span>${esc(t('Columnes'))}</span><input class="in" type="number" min="4" max="150" data-mf="cols" value="${m.cols}"></label><label class="field"><span>${esc(t('Files'))}</span><input class="in" type="number" min="4" max="150" data-mf="rows" value="${m.rows}"></label></div>
-    <label class="field"><span>${esc(t('Metres per casella'))}</span><input class="in" type="number" min="0.5" step="0.5" data-mf="units" value="${m.units || 1.5}"></label>
+    <label class="field"><span>${esc(t('Mida de cada casella ({u})', {u: unitLbl()}))}</span><input class="in" type="number" min="${feet() ? 1 : .5}" step="${feet() ? 1 : .5}" data-mf="units" value="${toUnit(m.units || 1.5)}"></label>
     <label class="check"><input type="checkbox" data-mfb="grid.show" ${m.grid?.show !== false ? 'checked' : ''}> ${esc(t('Mostrar la quadrícula'))}</label>
     <label class="field"><span>${esc(t('Opacitat de la quadrícula'))}</span><input type="range" min="0.05" max="1" step="0.05" data-mf="grid.op" value="${m.grid?.op ?? .35}"></label>
     <h3>${esc(t('Imatge de fons'))}</h3>
@@ -277,9 +278,9 @@ function drawAoe(ctx, a, s, m, col) {
 }
 function drawRuler(ctx, r, s, m, C) {
   const ax = Math.floor(r.a.x) + .5, ay = Math.floor(r.a.y) + .5, bx = Math.floor(r.b.x) + .5, by = Math.floor(r.b.y) + .5;
-  const cells = Math.max(Math.abs(bx - ax), Math.abs(by - ay)), dist = cells * (m.units || 1.5);
+  const cells = gridCells(bx - ax, by - ay), dist = cells * (m.units || 1.5);
   ctx.strokeStyle = C['--accent']; ctx.lineWidth = 3; ctx.setLineDash([8, 6]); ctx.beginPath(); ctx.moveTo(ax * s, ay * s); ctx.lineTo(bx * s, by * s); ctx.stroke(); ctx.setLineDash([]);
-  const txt = `${String(Math.round(dist * 10) / 10).replace('.', ',')} m · ${cells} ${t(cells === 1 ? 'casella' : 'caselles')}`;
+  const txt = `${distTxt(dist)} · ${cells} ${t(cells === 1 ? 'casella' : 'caselles')}`;
   ctx.font = `600 ${Math.max(13, Math.round(s * .3))}px Alegreya, Georgia, serif`; const w = ctx.measureText(txt).width + 14;
   ctx.fillStyle = C['--ink']; ctx.fillRect(bx * s + 10, by * s - 26, w, 24); ctx.fillStyle = C['--surface']; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(txt, bx * s + 17, by * s - 14);
 }
@@ -469,11 +470,12 @@ document.addEventListener('input', e => {
   if (st.tab !== 'mapa') return; const x = e.target;
   if (x.dataset.mf) {mapFieldInput(x); return}
   if (x.dataset.tf === 'name' && mp.tokSel) {tokNameInput(x.value); return}
-  if (x.id === 'aoe-size') {mp.aoeSize = Math.max(1.5, +x.value || 1.5)}
+  if (x.id === 'aoe-size') {mp.aoeSize = Math.max(1.5, fromUnit(+x.value) || 1.5)}
 });
 const mapFieldInput = debounce(x => {
   const f = x.dataset.mf; let v = x.type === 'number' || x.type === 'range' ? +x.value : x.value;
   if (f === 'cols' || f === 'rows') v = clamp(Math.round(v) || 4, 4, 150);
+  if (f === 'units') v = Math.max(.3, fromUnit(v) || 1.5);
   write('maps/' + mapId(), setPath({}, f, v), 'update'); if (f === 'cols' || f === 'rows') {setTimeout(() => {fitView(); drawSoon()}, 60)}
 }, 250);
 const tokNameInput = debounce(v => write(`maps/${mapId()}/tokens/${mp.tokSel}`, {name: v}, 'update'), 350);
@@ -482,9 +484,9 @@ document.addEventListener('change', e => {
   if (x.id === 'map-pick') {mp.sel = x.value; lsSet('qm-map', x.value); mp.tokSel = null; mp.undo = []; renderMap(); return}
   if (x.id === 'brush-size') {mp.brush = +x.value; return}
   if (x.id === 'fog-on') {const doc = beginEdit(); doc.fog = {rev: {}, ...(doc.fog || {}), on: x.checked}; commitEdit(); drawSoon(); updateHint(); return}
-  if (x.id === 'fog-auto') {write('maps/' + mapId(), {fog: x.checked ? {auto: true, on: true, dist: mapDoc()?.fog?.dist || 18} : {auto: false}}, 'update'); setTimeout(() => {renderMapSide(); updateHint()}, 60);
+  if (x.id === 'fog-auto') {write('maps/' + mapId(), {fog: x.checked ? {auto: true, on: true, dist: mapDoc()?.fog?.dist || rules().vision} : {auto: false}}, 'update'); setTimeout(() => {renderMapSide(); updateHint()}, 60);
     if (x.checked) toast(t('Boira automàtica activada: es revelarà el que veuen els personatges quan es moguen.'), 5000); return}
-  if (x.id === 'fog-dist') {write('maps/' + mapId(), {fog: {dist: clamp(+x.value || 18, 1.5, 45)}}, 'update'); return}
+  if (x.id === 'fog-dist') {write('maps/' + mapId(), {fog: {dist: clamp(fromUnit(+x.value) || 18, 1.5, 45)}}, 'update'); return}
   if (x.dataset.mfb) {write('maps/' + mapId(), setPath({}, x.dataset.mfb, x.checked), 'update'); return}
   if (x.dataset.tf === 'size' && mp.tokSel) {write(`maps/${mapId()}/tokens/${mp.tokSel}`, {size: +x.value}, 'update'); return}
   if (x.dataset.tfb && mp.tokSel) {write(`maps/${mapId()}/tokens/${mp.tokSel}`, {[x.dataset.tfb]: x.checked}, 'update'); return}
