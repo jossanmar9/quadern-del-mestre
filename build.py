@@ -55,7 +55,7 @@ def main():
     out = ROOT / "quadern.py"
     out.write_text(server.replace("__QR__", qr).replace("__FINESTRA__", finestra)
                    .replace("__ICONA__", b64_lines((WEB / "logo.png").read_bytes()))
-                   .replace("__PAGE__", b64_lines(gzip.compress(html.encode("utf-8"), 9)))
+                   .replace("__PAGE__", b64_lines(gzip.compress(html.encode("utf-8"), 9, mtime=0)))
                    .replace("__SRD_VA__", b64_lines(srd_va.read_bytes()) if srd_va.exists() else "")
                    .replace("__SRD__", b64_lines((ROOT / "src" / "srd" / "srd-es.json.gz").read_bytes())),
                    encoding="utf-8")

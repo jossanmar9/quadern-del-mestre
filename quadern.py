@@ -1721,7 +1721,7 @@ def main():
 
 # ---------------------------------------------------------------- pàgina web i compendi SRD (gzip + base64)
 PAGE_BYTES = gzip.decompress(base64.b64decode("""
-H4sIADW96GoC/5ybx47zWpee576K4zNl/2BOdh8DEnPOccYo5pyv3vzabgMGPHIBBYqqErW5udd6n6fE+vf/mo/Zdk/FX9XWd//j
+H4sIAAAAAAAC/5ybx47zWpee576K4zNl/2BOdh8DEnPOccYo5pyv3vzabgMGPHIBBYqqErW5udd6n6fE+vf/mo/Zdk/FX9XWd//j
 v/z7n81fXTL8/vk7S/7+80SR5O+mL7bkr6xKlrXY/vl738p/UX//59ND0hf//H3UxTmNy/b3X9k4bMXw/tpZ51v1T14cdVb86z92
 /q0e6q1Oun+tWdIV/8D/9p+v+ldZb/9k41Esfw7b1UP711J0//xdvwf7+68/I3wf98mvAKfh9/df1VKU//ydJ1vy3/7Ps/89TdaC
 wP6t9r+GfUKK8Bs/75fueBXn/d5H3J/d74f5RO+WmZNQLN4HTdV2nOXbGLIjaRLbuY/2/UCiZmbkaU5U+NIpflVPMlw/qVaT8tZc

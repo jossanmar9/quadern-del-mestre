@@ -361,7 +361,7 @@ def main():
     v = versio()
     (eixida / "index.html").write_text(pagina(T["ca"], "ca", "", v), encoding="utf-8")
     (eixida / "es" / "index.html").write_text(pagina(T["es"], "es", "../", v), encoding="utf-8")
-    (eixida / ".nojekyll").write_text("")
+    (eixida / ".nojekyll").write_text("", encoding="utf-8")
     print(f"Web generada a {eixida}")
 
 
